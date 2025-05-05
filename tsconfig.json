@@ -119,7 +119,6 @@
     "src/**/*.ts",
     "src/**/*.d.ts",
     "hardhat.config.mts",
-    "vitest.config.ts",
     "tsup.config.ts",
     "__tests__/solana/Solana.test.ts"
   ],
