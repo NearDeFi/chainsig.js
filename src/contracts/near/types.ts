@@ -7,7 +7,6 @@ import type {
   CosmosTransactionRequest,
 } from '@chain-adapters/Cosmos/types'
 import { type EVMTransactionRequest } from '@chain-adapters/EVM/types'
-import type { KeyDerivationPath } from '@types'
 
 export type ChainSignatureContractIds = string
 
@@ -44,7 +43,6 @@ export interface EVMRequest {
   fastAuthRelayerUrl?: string
   derivationPath: string
 }
-
 export type BTCChainConfigWithProviders = ChainProvider & {
   network: BTCNetworkIds
 }
@@ -69,3 +67,4 @@ export interface CosmosRequest {
   derivationPath: string
   fastAuthRelayerUrl?: string
 }
+

@@ -5,11 +5,11 @@ import { najToUncompressedPubKeySEC1 } from '@utils/cryptography'
 import { getRootPublicKey } from '@utils/publicKey'
 import BN from 'bn.js'
 
-import { CHAINS, KDF_CHAIN_IDS } from '@constants'
 import { ChainSignatureContract as AbstractChainSignatureContract } from '@contracts/ChainSignatureContract'
 import type { SignArgs } from '@contracts/ChainSignatureContract'
 import { getNearAccount } from '@contracts/near/account'
 import { DONT_CARE_ACCOUNT_ID, NEAR_MAX_GAS } from '@contracts/near/constants'
+import { KDF_CHAIN_ID } from '@constants'
 import {
   responseToMpcSignature,
   type SendTransactionOptions,
@@ -85,7 +85,7 @@ export class ChainSignatureContract extends AbstractChainSignatureContract {
     this.sendTransactionOptions = sendTransactionOptions
 
     this.rootPublicKey =
-      rootPublicKey || getRootPublicKey(this.contractId, CHAINS.NEAR)
+      rootPublicKey || getRootPublicKey(this.contractId)
   }
 
   private async getContract(): Promise<NearContract> {
@@ -139,7 +139,7 @@ export class ChainSignatureContract extends AbstractChainSignatureContract {
         await this.getPublicKey(),
         args.predecessor.toLowerCase(),
         args.path,
-        KDF_CHAIN_IDS.NEAR
+        KDF_CHAIN_ID
       )
       return pubKey
     } else {

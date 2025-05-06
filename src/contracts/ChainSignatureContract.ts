@@ -50,7 +50,7 @@ export abstract class BaseChainSignatureContract {
 }
 
 /**
- * Full contract interface that extends BaseChainSignatureContract to provide all Sig Network Smart Contract capabilities.
+ * Full contract interface that extends BaseChainSignatureContract to provide all NEAR MPC capabilities.
  */
 export abstract class ChainSignatureContract extends BaseChainSignatureContract {
   /**
