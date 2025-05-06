@@ -5,20 +5,20 @@ import { najToUncompressedPubKeySEC1 } from '@utils/cryptography'
 import { getRootPublicKey } from '@utils/publicKey'
 import BN from 'bn.js'
 
-import { ChainSignatureContract as AbstractChainSignatureContract } from '@contracts/ChainSignatureContract'
-import type { SignArgs } from '@contracts/ChainSignatureContract'
-import { getNearAccount } from '@contracts/near/account'
-import { DONT_CARE_ACCOUNT_ID, NEAR_MAX_GAS } from '@contracts/near/constants'
+import { ChainSignatureContract as AbstractChainSignatureContract } from '@mpc-contract/ChainSignatureContract'
+import type { SignArgs } from '@mpc-contract/ChainSignatureContract'
+import { getNearAccount } from '@mpc-contract/near/account'
+import { DONT_CARE_ACCOUNT_ID, NEAR_MAX_GAS } from '@mpc-contract/near/constants'
 import { KDF_CHAIN_ID } from '@constants'
 import {
   responseToMpcSignature,
   type SendTransactionOptions,
   sendTransactionUntil,
-} from '@contracts/near/transaction'
+} from '@mpc-contract/near/transaction'
 import {
   type NearNetworkIds,
   type ChainSignatureContractIds,
-} from '@contracts/near/types'
+} from '@mpc-contract/near/types'
 import type { RSVSignature, UncompressedPubKeySEC1, NajPublicKey } from '@types'
 import { cryptography } from '@utils'
 

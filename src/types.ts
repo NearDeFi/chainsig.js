@@ -1,4 +1,4 @@
-import { type SignArgs } from '@contracts/ChainSignatureContract'
+import { type SignArgs } from '@mpc-contract/ChainSignatureContract'
 
 export type HashToSign = SignArgs['payload']
 

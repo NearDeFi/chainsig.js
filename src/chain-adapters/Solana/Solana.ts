@@ -2,7 +2,7 @@ import type { Connection as SolanaConnection } from '@solana/web3.js'
 import { PublicKey, Transaction, SystemProgram } from '@solana/web3.js'
 import type BN from 'bn.js'
 
-import type { BaseChainSignatureContract } from '@contracts/ChainSignatureContract'
+import type { BaseChainSignatureContract } from '@mpc-contract/ChainSignatureContract'
 import type { HashToSign, Signature } from '@types'
 
 import { ChainAdapter } from '../ChainAdapter'

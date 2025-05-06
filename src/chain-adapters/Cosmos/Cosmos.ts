@@ -23,7 +23,7 @@ import type {
   BalanceResponse,
 } from '@chain-adapters/Cosmos/types'
 import { fetchChainInfo } from '@chain-adapters/Cosmos/utils'
-import type { BaseChainSignatureContract } from '@contracts/ChainSignatureContract'
+import type { BaseChainSignatureContract } from '@mpc-contract/ChainSignatureContract'
 import type { HashToSign, RSVSignature, UncompressedPubKeySEC1 } from '@types'
 import { cryptography } from '@utils'
 

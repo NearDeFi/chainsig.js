@@ -30,7 +30,7 @@ import type {
   UserOperationV7,
 } from '@chain-adapters/EVM/types'
 import { fetchEVMFeeProperties } from '@chain-adapters/EVM/utils'
-import type { BaseChainSignatureContract } from '@contracts/ChainSignatureContract'
+import type { BaseChainSignatureContract } from '@mpc-contract/ChainSignatureContract'
 import type { HashToSign, RSVSignature } from '@types'
 
 /**
