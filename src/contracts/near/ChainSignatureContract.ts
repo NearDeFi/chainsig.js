@@ -139,7 +139,6 @@ export class ChainSignatureContract extends AbstractChainSignatureContract {
         await this.getPublicKey(),
         args.predecessor.toLowerCase(),
         args.path,
-        KDF_CHAIN_ID
       )
       return pubKey
     } else {

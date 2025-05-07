@@ -177,7 +177,7 @@ declare const najToUncompressedPubKeySEC1: (najPublicKey: NajPublicKey) => Uncom
  * @param path - Optional derivation path suffix (defaults to empty string)
  * @returns The derived child public key in uncompressed SEC1 format (04 || x || y)
  */
-declare function deriveChildPublicKey(rootUncompressedPubKeySEC1: UncompressedPubKeySEC1, predecessorId: string, path: string | undefined, chainId: string): UncompressedPubKeySEC1;
+declare function deriveChildPublicKey(rootUncompressedPubKeySEC1: UncompressedPubKeySEC1, predecessorId: string, path?: string): UncompressedPubKeySEC1;
 
 declare const cryptography_compressPubKey: typeof compressPubKey;
 declare const cryptography_deriveChildPublicKey: typeof deriveChildPublicKey;

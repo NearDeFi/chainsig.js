@@ -2,13 +2,13 @@ import { base58 } from '@scure/base'
 import { ec as EC } from 'elliptic'
 import { sha3_256 } from 'js-sha3'
 
-import { KDF_CHAIN_ID } from '@constants'
 import {
   type NajPublicKey,
   type MPCSignature,
   type RSVSignature,
   type UncompressedPubKeySEC1,
 } from '@types'
+import BN from 'bn.js'
 
 export const toRSV = (signature: MPCSignature): RSVSignature => {
   // Handle NearNearMpcSignature
@@ -109,30 +109,27 @@ export function deriveChildPublicKey(
   rootUncompressedPubKeySEC1: UncompressedPubKeySEC1,
   predecessorId: string,
   path: string = '',
-  chainId: string
 ): UncompressedPubKeySEC1 {
   const ec = new EC('secp256k1')
 
-  const EPSILON_DERIVATION_PREFIX = 'sig.network v1.0.0 epsilon derivation'
-  const derivationPath = `${EPSILON_DERIVATION_PREFIX},${chainId},${predecessorId},${path}`
+  const TWEAK_DERIVATION_PREFIX = 'near-mpc-recovery v0.1.0 epsilon derivation:'
+  const derivationPath = `${TWEAK_DERIVATION_PREFIX}${predecessorId},${path}`
 
-  let scalarHex = ''
+  // Generate tweak using SHA3-256
+  const tweakBytes = sha3_256(derivationPath)
+  const tweak = new BN(tweakBytes, 16)
 
-  if (chainId === KDF_CHAIN_ID) {
-    scalarHex = sha3_256(derivationPath)
-  } else {
-    throw new Error('Invalid chain ID')
-  }
-
+  // Parse the uncompressed public key
   const x = rootUncompressedPubKeySEC1.substring(2, 66)
   const y = rootUncompressedPubKeySEC1.substring(66)
-
   const oldPublicKeyPoint = ec.curve.point(x, y)
-  const scalarTimesG = ec.g.mul(scalarHex)
+
+  // Calculate new point: P + [tweak]G
+  const scalarTimesG = ec.g.mul(tweak)
   const newPublicKeyPoint = oldPublicKeyPoint.add(scalarTimesG)
 
+  // Format the result as uncompressed SEC1
   const newX = newPublicKeyPoint.getX().toString('hex').padStart(64, '0')
   const newY = newPublicKeyPoint.getY().toString('hex').padStart(64, '0')
-
   return `04${newX}${newY}`
 }
