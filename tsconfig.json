@@ -35,6 +35,8 @@
       "@utils": ["./src/utils/index.ts"],
       "@constants": ["./src/constants.ts"],
       "@types": ["./src/types.ts"],
+      "@mpc-contract": ["./src/mpc-contract/index.ts"],
+      "@mpc-contract/*": ["./src/mpc-contract/*"],
       "@chain-adapters/*": ["./src/chain-adapters/*"],
       "@contracts/*": ["./src/contracts/*"],
       "@utils/*": ["./src/utils/*"]

@@ -10,7 +10,7 @@ import type {
 } from '@chain-adapters/Bitcoin/types'
 import { parseBTCNetwork } from '@chain-adapters/Bitcoin/utils'
 import { ChainAdapter } from '@chain-adapters/ChainAdapter'
-import type { BaseChainSignatureContract } from '@contracts/ChainSignatureContract'
+import type { ChainSignatureContract } from '@mpc-contract/ChainSignatureContract'
 import type { HashToSign, RSVSignature, UncompressedPubKeySEC1 } from '@types'
 import { cryptography } from '@utils'
 
@@ -26,7 +26,7 @@ export class Bitcoin extends ChainAdapter<
 
   private readonly network: BTCNetworkIds
   private readonly btcRpcAdapter: BTCRpcAdapter
-  private readonly contract: BaseChainSignatureContract
+  private readonly contract: ChainSignatureContract
 
   /**
    * Creates a new Bitcoin chain instance
@@ -41,7 +41,7 @@ export class Bitcoin extends ChainAdapter<
     btcRpcAdapter,
   }: {
     network: BTCNetworkIds
-    contract: BaseChainSignatureContract
+    contract: ChainSignatureContract
     btcRpcAdapter: BTCRpcAdapter
   }) {
     super()

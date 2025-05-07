@@ -30,7 +30,7 @@ import type {
   UserOperationV7,
 } from '@chain-adapters/EVM/types'
 import { fetchEVMFeeProperties } from '@chain-adapters/EVM/utils'
-import type { BaseChainSignatureContract } from '@contracts/ChainSignatureContract'
+import type { ChainSignatureContract } from '@mpc-contract/ChainSignatureContract'
 import type { HashToSign, RSVSignature } from '@types'
 
 /**
@@ -42,7 +42,7 @@ export class EVM extends ChainAdapter<
   EVMUnsignedTransaction
 > {
   private readonly client: PublicClient
-  private readonly contract: BaseChainSignatureContract
+  private readonly contract: ChainSignatureContract
 
   /**
    * Creates a new EVM chain instance
@@ -55,7 +55,7 @@ export class EVM extends ChainAdapter<
     contract,
   }: {
     publicClient: PublicClient
-    contract: BaseChainSignatureContract
+    contract: ChainSignatureContract
   }) {
     super()
 

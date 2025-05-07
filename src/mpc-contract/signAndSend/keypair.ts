@@ -2,14 +2,14 @@ import { type KeyPair } from '@near-js/crypto'
 
 import * as chainAdapters from '@chain-adapters'
 import { BTCRpcAdapters } from '@chain-adapters/Bitcoin/BTCRpcAdapter'
-import { getNearAccount } from '@contracts/near/account'
-import { ChainSignatureContract } from '@contracts/near/ChainSignatureContract'
+import { getNearAccount } from '../account'
+import { ChainSignatureContract } from '../ChainSignatureContract'
 import {
   type Response,
   type BitcoinRequest,
   type CosmosRequest,
   type EVMRequest,
-} from '@contracts/near/types'
+} from '../types'
 import { createPublicClient, http } from 'viem';
 
 export const EVMTransaction = async (

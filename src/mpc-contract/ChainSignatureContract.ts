@@ -5,20 +5,17 @@ import { najToUncompressedPubKeySEC1 } from '@utils/cryptography'
 import { getRootPublicKey } from '@utils/publicKey'
 import BN from 'bn.js'
 
-import { KDF_CHAIN_ID } from '@constants'
-import { ChainSignatureContract as AbstractChainSignatureContract } from '@contracts/ChainSignatureContract'
-import type { SignArgs } from '@contracts/ChainSignatureContract'
-import { getNearAccount } from '@contracts/near/account'
-import { DONT_CARE_ACCOUNT_ID, NEAR_MAX_GAS } from '@contracts/near/constants'
+import { getNearAccount } from '@mpc-contract/account'
+import { DONT_CARE_ACCOUNT_ID, NEAR_MAX_GAS } from '@mpc-contract/constants'
 import {
   responseToMpcSignature,
   type SendTransactionOptions,
   sendTransactionUntil,
-} from '@contracts/near/transaction'
+} from '@mpc-contract/transaction'
 import {
   type NearNetworkIds,
   type ChainSignatureContractIds,
-} from '@contracts/near/types'
+} from '@mpc-contract/types'
 import type { RSVSignature, UncompressedPubKeySEC1, NajPublicKey } from '@types'
 import { cryptography } from '@utils'
 
@@ -30,6 +27,15 @@ type NearContract = Contract & {
     predecessor: string
     domain_id?: number
   }) => Promise<NajPublicKey | `Ed25519:${string}`>
+}
+
+export interface SignArgs {
+  /** The payload to sign as an array of 32 bytes */
+  payload: number[]
+  /** The derivation path for key generation */
+  path: string
+  /** Version of the key to use */
+  key_version: number
 }
 
 interface ChainSignatureContractArgs {
@@ -47,27 +53,15 @@ interface ChainSignatureContractArgs {
  * This class provides an interface to interact with the ChainSignatures contract
  * deployed on NEAR. It supports both view methods (which don't require authentication)
  * and change methods (which require a valid NEAR account and keypair).
- *
- * @extends AbstractChainSignatureContract
  */
-export class ChainSignatureContract extends AbstractChainSignatureContract {
+export class ChainSignatureContract {
   private readonly networkId: NearNetworkIds
   private readonly contractId: ChainSignatureContractIds
   private readonly accountId: string
   private readonly keypair: KeyPair
   private readonly rootPublicKey?: NajPublicKey
   private readonly sendTransactionOptions?: SendTransactionOptions
-  /**
-   * Creates a new instance of the ChainSignatureContract for NEAR chains.
-   *
-   * @param args - Configuration options for the contract
-   * @param args.networkId - The NEAR network ID (e.g. 'testnet', 'mainnet')
-   * @param args.contractId - The contract ID of the deployed ChainSignatures contract
-   * @param args.accountId - Optional NEAR account ID for signing transactions. Required for change methods.
-   * @param args.keypair - Optional NEAR KeyPair for signing transactions. Required for change methods.
-   * @param args.rootPublicKey - Optional root public key for the contract. If not provided, it will be derived from the contract ID.
-   * @param args.sendTransactionOptions - Optional configuration for transaction sending behavior.
-   */
+
   constructor({
     networkId,
     contractId,
@@ -76,8 +70,6 @@ export class ChainSignatureContract extends AbstractChainSignatureContract {
     rootPublicKey,
     sendTransactionOptions,
   }: ChainSignatureContractArgs) {
-    super()
-
     this.networkId = networkId
     this.contractId = contractId
     this.accountId = accountId
