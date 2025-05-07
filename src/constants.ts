@@ -15,7 +15,7 @@ export const ROOT_PUBLIC_KEYS: Record<keyof typeof ENVS, NajPublicKey> = {
   [ENVS.TESTNET_DEV]:
     'secp256k1:placeholder', // TODO: Is there still a deployment for this?
   [ENVS.TESTNET]:
-    'secp256k1:3Ww8iFjqTHufye5aRGUvrQqETegR4gVUcW8FX5xzscaN9ENhpkffojsxJwi6N1RbbHMTxYa9UyKeqK3fsMuwxjR5',
+    'secp256k1:4NfTiv3UsGahebgTaHyD9vF8KYKMBnfd6kh94mK6xv8fGBiJB8TBtFMP5WWXz6B89Ac1fbpzPwAvoyQebemHFwx3',
   [ENVS.MAINNET]:
     'secp256k1:3tFRbMqmoa6AAALMrEFAYCEoHcqKxeW38YptwowBVBtXK1vo36HDbUWuR6EZmoK4JcH6HDkNMGGqP1ouV7VZUWya',
 }
