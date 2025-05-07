@@ -13,11 +13,11 @@ export const ENVS = {
  */
 export const ROOT_PUBLIC_KEYS: Record<keyof typeof ENVS, NajPublicKey> = {
   [ENVS.TESTNET_DEV]:
-    'secp256k1:54hU5wcCmVUPFWLDALXMh1fFToZsVXrx9BbTbHzSfQq1Kd1rJZi52iPa4QQxo6s5TgjWqgpY8HamYuUDzG6fAaUq',
+    'secp256k1:placeholder',
   [ENVS.TESTNET]:
-    'secp256k1:3Ww8iFjqTHufye5aRGUvrQqETegR4gVUcW8FX5xzscaN9ENhpkffojsxJwi6N1RbbHMTxYa9UyKeqK3fsMuwxjR5',
+    'secp256k1:4NfTiv3UsGahebgTaHyD9vF8KYKMBnfd6kh94mK6xv8fGBiJB8TBtFMP5WWXz6B89Ac1fbpzPwAvoyQebemHFwx3',
   [ENVS.MAINNET]:
-    'secp256k1:4tY4qMzusmgX5wYdG35663Y3Qar3CTbpApotwk9ZKLoF79XA4DjG8XoByaKdNHKQX9Lz5hd7iJqsWdTKyA7dKa6Z',
+    'secp256k1:3tFRbMqmoa6AAALMrEFAYCEoHcqKxeW38YptwowBVBtXK1vo36HDbUWuR6EZmoK4JcH6HDkNMGGqP1ouV7VZUWya',
 }
 
 /**
@@ -38,7 +38,7 @@ export const KDF_CHAIN_ID = '0x18d' as const
  * @see ChainSignatureContract documentation for implementation details
  */
 export const CONTRACT_ADDRESSES: Record<keyof typeof ENVS, string> = {
-    [ENVS.TESTNET_DEV]: 'dev.sig-net.testnet',
-    [ENVS.TESTNET]: 'v1.sig-net.testnet',
+    [ENVS.TESTNET_DEV]: 'v1.signer',
+    [ENVS.TESTNET]: 'v1.signer-prod.testnet',
     [ENVS.MAINNET]: 'v1.sig-net.near',
 }
