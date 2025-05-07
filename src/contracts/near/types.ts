@@ -7,7 +7,6 @@ import type {
   CosmosTransactionRequest,
 } from '@chain-adapters/Cosmos/types'
 import { type EVMTransactionRequest } from '@chain-adapters/EVM/types'
-import type { KeyDerivationPath } from '@types'
 
 export type ChainSignatureContractIds = string
 

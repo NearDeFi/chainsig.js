@@ -1,6 +1,6 @@
 import BN from 'bn.js';
 import { Transaction, TransactionInstruction, PublicKey, Connection } from '@solana/web3.js';
-import { TransactionRequest, Address, SignableMessage, TypedDataDefinition, Hex, PublicClient, Hash, TransactionReceipt, WalletClient } from 'viem';
+import { TransactionRequest, Address, SignableMessage, TypedDataDefinition, Hex, PublicClient, Hash } from 'viem';
 import * as bitcoin from 'bitcoinjs-lib';
 import { EncodeObject } from '@cosmjs/proto-signing';
 import { TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
@@ -48,7 +48,7 @@ declare abstract class BaseChainSignatureContract {
 /**
  * Full contract interface that extends BaseChainSignatureContract to provide all Sig Network Smart Contract capabilities.
  */
-declare abstract class ChainSignatureContract$2 extends BaseChainSignatureContract {
+declare abstract class ChainSignatureContract$1 extends BaseChainSignatureContract {
     /**
      * Signs a payload using Sig Network MPC.
      *
@@ -196,9 +196,9 @@ declare namespace cryptography {
   export { cryptography_compressPubKey as compressPubKey, cryptography_deriveChildPublicKey as deriveChildPublicKey, cryptography_najToUncompressedPubKeySEC1 as najToUncompressedPubKeySEC1, cryptography_toRSV as toRSV };
 }
 
-declare const index$8_cryptography: typeof cryptography;
-declare namespace index$8 {
-  export { index$8_cryptography as cryptography };
+declare const index$7_cryptography: typeof cryptography;
+declare namespace index$7 {
+  export { index$7_cryptography as cryptography };
 }
 
 declare abstract class ChainAdapter<TransactionRequest, UnsignedTransaction> {
@@ -400,15 +400,15 @@ interface EVMFeeProperties {
 }
 declare function fetchEVMFeeProperties(client: PublicClient, transaction: TransactionRequest): Promise<EVMFeeProperties>;
 
-type index$7_EVM = EVM;
-declare const index$7_EVM: typeof EVM;
-type index$7_EVMMessage = EVMMessage;
-type index$7_EVMTransactionRequest = EVMTransactionRequest;
-type index$7_EVMTypedData = EVMTypedData;
-type index$7_EVMUnsignedTransaction = EVMUnsignedTransaction;
-declare const index$7_fetchEVMFeeProperties: typeof fetchEVMFeeProperties;
-declare namespace index$7 {
-  export { index$7_EVM as EVM, type index$7_EVMMessage as EVMMessage, type index$7_EVMTransactionRequest as EVMTransactionRequest, type index$7_EVMTypedData as EVMTypedData, type index$7_EVMUnsignedTransaction as EVMUnsignedTransaction, index$7_fetchEVMFeeProperties as fetchEVMFeeProperties };
+type index$6_EVM = EVM;
+declare const index$6_EVM: typeof EVM;
+type index$6_EVMMessage = EVMMessage;
+type index$6_EVMTransactionRequest = EVMTransactionRequest;
+type index$6_EVMTypedData = EVMTypedData;
+type index$6_EVMUnsignedTransaction = EVMUnsignedTransaction;
+declare const index$6_fetchEVMFeeProperties: typeof fetchEVMFeeProperties;
+declare namespace index$6 {
+  export { index$6_EVM as EVM, type index$6_EVMMessage as EVMMessage, type index$6_EVMTransactionRequest as EVMTransactionRequest, type index$6_EVMTypedData as EVMTypedData, type index$6_EVMUnsignedTransaction as EVMUnsignedTransaction, index$6_fetchEVMFeeProperties as fetchEVMFeeProperties };
 }
 
 interface BTCTransaction$1 {
@@ -548,18 +548,18 @@ declare class Bitcoin extends ChainAdapter<BTCTransactionRequest, BTCUnsignedTra
     }>;
 }
 
-type index$6_BTCInput = BTCInput;
-type index$6_BTCNetworkIds = BTCNetworkIds;
-type index$6_BTCOutput = BTCOutput;
-type index$6_BTCRpcAdapter = BTCRpcAdapter;
-declare const index$6_BTCRpcAdapter: typeof BTCRpcAdapter;
-declare const index$6_BTCRpcAdapters: typeof BTCRpcAdapters;
-type index$6_BTCTransactionRequest = BTCTransactionRequest;
-type index$6_BTCUnsignedTransaction = BTCUnsignedTransaction;
-type index$6_Bitcoin = Bitcoin;
-declare const index$6_Bitcoin: typeof Bitcoin;
-declare namespace index$6 {
-  export { type index$6_BTCInput as BTCInput, type index$6_BTCNetworkIds as BTCNetworkIds, type index$6_BTCOutput as BTCOutput, index$6_BTCRpcAdapter as BTCRpcAdapter, index$6_BTCRpcAdapters as BTCRpcAdapters, type BTCTransaction$1 as BTCTransaction, type index$6_BTCTransactionRequest as BTCTransactionRequest, type index$6_BTCUnsignedTransaction as BTCUnsignedTransaction, index$6_Bitcoin as Bitcoin };
+type index$5_BTCInput = BTCInput;
+type index$5_BTCNetworkIds = BTCNetworkIds;
+type index$5_BTCOutput = BTCOutput;
+type index$5_BTCRpcAdapter = BTCRpcAdapter;
+declare const index$5_BTCRpcAdapter: typeof BTCRpcAdapter;
+declare const index$5_BTCRpcAdapters: typeof BTCRpcAdapters;
+type index$5_BTCTransactionRequest = BTCTransactionRequest;
+type index$5_BTCUnsignedTransaction = BTCUnsignedTransaction;
+type index$5_Bitcoin = Bitcoin;
+declare const index$5_Bitcoin: typeof Bitcoin;
+declare namespace index$5 {
+  export { type index$5_BTCInput as BTCInput, type index$5_BTCNetworkIds as BTCNetworkIds, type index$5_BTCOutput as BTCOutput, index$5_BTCRpcAdapter as BTCRpcAdapter, index$5_BTCRpcAdapters as BTCRpcAdapters, type BTCTransaction$1 as BTCTransaction, type index$5_BTCTransactionRequest as BTCTransactionRequest, type index$5_BTCUnsignedTransaction as BTCUnsignedTransaction, index$5_Bitcoin as Bitcoin };
 }
 
 type CosmosNetworkIds = string;
@@ -621,13 +621,13 @@ declare class Cosmos extends ChainAdapter<CosmosTransactionRequest, CosmosUnsign
     broadcastTx(txSerialized: string): Promise<string>;
 }
 
-type index$5_Cosmos = Cosmos;
-declare const index$5_Cosmos: typeof Cosmos;
-type index$5_CosmosNetworkIds = CosmosNetworkIds;
-type index$5_CosmosTransactionRequest = CosmosTransactionRequest;
-type index$5_CosmosUnsignedTransaction = CosmosUnsignedTransaction;
-declare namespace index$5 {
-  export { index$5_Cosmos as Cosmos, type index$5_CosmosNetworkIds as CosmosNetworkIds, type index$5_CosmosTransactionRequest as CosmosTransactionRequest, type index$5_CosmosUnsignedTransaction as CosmosUnsignedTransaction };
+type index$4_Cosmos = Cosmos;
+declare const index$4_Cosmos: typeof Cosmos;
+type index$4_CosmosNetworkIds = CosmosNetworkIds;
+type index$4_CosmosTransactionRequest = CosmosTransactionRequest;
+type index$4_CosmosUnsignedTransaction = CosmosUnsignedTransaction;
+declare namespace index$4 {
+  export { index$4_Cosmos as Cosmos, type index$4_CosmosNetworkIds as CosmosNetworkIds, type index$4_CosmosTransactionRequest as CosmosTransactionRequest, type index$4_CosmosUnsignedTransaction as CosmosUnsignedTransaction };
 }
 
 interface SolanaTransactionRequest {
@@ -674,18 +674,18 @@ declare class Solana extends ChainAdapter<SolanaTransactionRequest, SolanaUnsign
     }>;
 }
 
-type index$4_Solana = Solana;
-declare const index$4_Solana: typeof Solana;
-type index$4_SolanaTransactionRequest = SolanaTransactionRequest;
-type index$4_SolanaUnsignedTransaction = SolanaUnsignedTransaction;
-declare namespace index$4 {
-  export { index$4_Solana as Solana, type index$4_SolanaTransactionRequest as SolanaTransactionRequest, type index$4_SolanaUnsignedTransaction as SolanaUnsignedTransaction };
+type index$3_Solana = Solana;
+declare const index$3_Solana: typeof Solana;
+type index$3_SolanaTransactionRequest = SolanaTransactionRequest;
+type index$3_SolanaUnsignedTransaction = SolanaUnsignedTransaction;
+declare namespace index$3 {
+  export { index$3_Solana as Solana, type index$3_SolanaTransactionRequest as SolanaTransactionRequest, type index$3_SolanaUnsignedTransaction as SolanaUnsignedTransaction };
 }
 
-type index$3_ChainAdapter<TransactionRequest, UnsignedTransaction> = ChainAdapter<TransactionRequest, UnsignedTransaction>;
-declare const index$3_ChainAdapter: typeof ChainAdapter;
-declare namespace index$3 {
-  export { index$3_ChainAdapter as ChainAdapter, index$6 as btc, index$5 as cosmos, index$7 as evm, index$4 as solana };
+type index$2_ChainAdapter<TransactionRequest, UnsignedTransaction> = ChainAdapter<TransactionRequest, UnsignedTransaction>;
+declare const index$2_ChainAdapter: typeof ChainAdapter;
+declare namespace index$2 {
+  export { index$2_ChainAdapter as ChainAdapter, index$5 as btc, index$4 as cosmos, index$6 as evm, index$3 as solana };
 }
 
 type ChainSignatureContractIds = string;
@@ -806,7 +806,7 @@ interface ChainSignatureContractArgs {
  *
  * @extends AbstractChainSignatureContract
  */
-declare class ChainSignatureContract$1 extends ChainSignatureContract$2 {
+declare class ChainSignatureContract extends ChainSignatureContract$1 {
     private readonly networkId;
     private readonly contractId;
     private readonly accountId;
@@ -839,271 +839,9 @@ declare class ChainSignatureContract$1 extends ChainSignatureContract$2 {
     private requireAccount;
 }
 
-declare const utils$1: {
+declare const utils: {
     transaction: typeof transaction;
     signAndSend: typeof signAndSend;
-};
-
-declare namespace index$2 {
-  export { ChainSignatureContract$1 as ChainSignatureContract, utils$1 as utils };
-}
-
-declare const abi: ({
-    inputs: {
-        internalType: string;
-        name: string;
-        type: string;
-    }[];
-    stateMutability: string;
-    type: string;
-    name?: undefined;
-    anonymous?: undefined;
-    outputs?: undefined;
-} | {
-    inputs: {
-        internalType: string;
-        name: string;
-        type: string;
-    }[];
-    name: string;
-    type: string;
-    stateMutability?: undefined;
-    anonymous?: undefined;
-    outputs?: undefined;
-} | {
-    anonymous: boolean;
-    inputs: ({
-        indexed: boolean;
-        internalType: string;
-        name: string;
-        type: string;
-        components?: undefined;
-    } | {
-        components: ({
-            components: {
-                internalType: string;
-                name: string;
-                type: string;
-            }[];
-            internalType: string;
-            name: string;
-            type: string;
-        } | {
-            internalType: string;
-            name: string;
-            type: string;
-            components?: undefined;
-        })[];
-        indexed: boolean;
-        internalType: string;
-        name: string;
-        type: string;
-    })[];
-    name: string;
-    type: string;
-    stateMutability?: undefined;
-    outputs?: undefined;
-} | {
-    inputs: {
-        internalType: string;
-        name: string;
-        type: string;
-    }[];
-    name: string;
-    outputs: {
-        internalType: string;
-        name: string;
-        type: string;
-    }[];
-    stateMutability: string;
-    type: string;
-    anonymous?: undefined;
-} | {
-    inputs: {
-        components: ({
-            internalType: string;
-            name: string;
-            type: string;
-            components?: undefined;
-        } | {
-            components: ({
-                components: {
-                    internalType: string;
-                    name: string;
-                    type: string;
-                }[];
-                internalType: string;
-                name: string;
-                type: string;
-            } | {
-                internalType: string;
-                name: string;
-                type: string;
-                components?: undefined;
-            })[];
-            internalType: string;
-            name: string;
-            type: string;
-        })[];
-        internalType: string;
-        name: string;
-        type: string;
-    }[];
-    name: string;
-    outputs: never[];
-    stateMutability: string;
-    type: string;
-    anonymous?: undefined;
-})[];
-
-declare const ChainSignaturesContractABI_abi: typeof abi;
-declare namespace ChainSignaturesContractABI {
-  export { ChainSignaturesContractABI_abi as abi };
-}
-
-declare class ChainSignatureError extends Error {
-    requestId: `0x${string}`;
-    receipt: TransactionReceipt;
-    constructor(message: string, requestId: `0x${string}`, receipt: TransactionReceipt);
-}
-declare class SignatureNotFoundError extends ChainSignatureError {
-    constructor(requestId: `0x${string}`, receipt: TransactionReceipt);
-}
-declare class SignatureContractError extends ChainSignatureError {
-    errorCode: string;
-    constructor(errorCode: string, requestId: `0x${string}`, receipt: TransactionReceipt);
-}
-declare class SigningError extends ChainSignatureError {
-    originalError?: Error;
-    constructor(requestId: `0x${string}`, receipt: TransactionReceipt, originalError?: Error);
-}
-
-type errors_ChainSignatureError = ChainSignatureError;
-declare const errors_ChainSignatureError: typeof ChainSignatureError;
-type errors_SignatureContractError = SignatureContractError;
-declare const errors_SignatureContractError: typeof SignatureContractError;
-type errors_SignatureNotFoundError = SignatureNotFoundError;
-declare const errors_SignatureNotFoundError: typeof SignatureNotFoundError;
-type errors_SigningError = SigningError;
-declare const errors_SigningError: typeof SigningError;
-declare namespace errors {
-  export { errors_ChainSignatureError as ChainSignatureError, errors_SignatureContractError as SignatureContractError, errors_SignatureNotFoundError as SignatureNotFoundError, errors_SigningError as SigningError };
-}
-
-interface SignOptions {
-    sign: {
-        algo?: string;
-        dest?: string;
-        params?: string;
-    };
-    retry: {
-        delay?: number;
-        retryCount?: number;
-    };
-}
-interface SignatureErrorData {
-    requestId: string;
-    responder: string;
-    error: string;
-}
-interface RequestIdArgs {
-    address: Address;
-    payload: Hex;
-    path: string;
-    keyVersion: number;
-    chainId: bigint;
-    algo: string;
-    dest: string;
-    params: string;
-}
-
-/**
- * Implementation of the ChainSignatureContract for EVM chains.
- *
- * When signing data, the contract emits a SignatureRequested event with a requestId.
- * This requestId is used to track the signature request and retrieve the signature
- * once it's available. The sign method handles this process automatically by polling
- * for the signature using the requestId.
- */
-declare class ChainSignatureContract extends ChainSignatureContract$2 {
-    private readonly publicClient;
-    private readonly walletClient;
-    private readonly contractAddress;
-    private readonly rootPublicKey;
-    /**
-     * Creates a new instance of the ChainSignatureContract for EVM chains.
-     *
-     * @param args - Configuration options for the contract
-     * @param args.publicClient - A Viem PublicClient instance for reading from the blockchain
-     * @param args.walletClient - A Viem WalletClient instance for sending transactions
-     * @param args.contractAddress - The address of the deployed ChainSignatures contract (e.g. `0x857ED3A242B59cC24144814a0DF41C397a3811E6`)
-     * @param args.rootPublicKey - Optional root public key. If not provided, it will be derived from the contract address
-     */
-    constructor(args: {
-        publicClient: PublicClient;
-        walletClient: WalletClient;
-        contractAddress: Hex;
-        rootPublicKey?: NajPublicKey;
-    });
-    getCurrentSignatureDeposit(): Promise<BN>;
-    getDerivedPublicKey(args: {
-        path: string;
-        predecessor: string;
-    }): Promise<UncompressedPubKeySEC1>;
-    getPublicKey(): Promise<UncompressedPubKeySEC1>;
-    getLatestKeyVersion(): Promise<number>;
-    /**
-     * Sends a transaction to the contract to request a signature, then
-     * polls for the signature result. If the signature is not found within the retry
-     * parameters, it will throw an error.
-     */
-    sign(args: SignArgs, options?: SignOptions): Promise<RSVSignature>;
-    /**
-     * Generates the request ID for a signature request allowing to track the response.
-     *
-     * @param request - The signature request object containing:
-     *   @param request.address - The contract/wallet address calling the signing contract
-     *   @param request.payload - The data payload to be signed as a hex string
-     *   @param request.path - The derivation path for the key
-     *   @param request.keyVersion - The version of the key to use
-     *   @param request.chainId - The chain ID as a bigint
-     *   @param request.algo - The signing algorithm to use
-     *   @param request.dest - The destination for the signature
-     *   @param request.params - Additional parameters for the signing process
-     * @returns A hex string representing the unique request ID
-     *
-     * @example
-     * ```typescript
-     * const requestId = ChainSignatureContract.getRequestId({
-     *   address: walletClient.account.address,
-     *   payload: payload: `0x${Buffer.from(args.payload).toString('hex')}`,,
-     *   path: '',
-     *   keyVersion: 0,
-     *   chainId: 1n,
-     *   algo: '',
-     *   dest: '',
-     *   params: ''
-     * });
-     * console.log(requestId); // 0x...
-     * ```
-     */
-    getRequestId(request: RequestIdArgs): Hex;
-    getErrorFromEvents(requestId: Hex, fromBlock: bigint): Promise<SignatureErrorData | undefined>;
-    /**
-     * Searches for SignatureResponded events that match the given requestId.
-     * It works in conjunction with the getRequestId method which generates the unique
-     * identifier for a signature request.
-     *
-     * @param requestId - The identifier for the signature request
-     * @param fromBlock - The block number to start searching from
-     * @returns The RSV signature if found, undefined otherwise
-     */
-    getSignatureFromEvents(requestId: Hex, fromBlock: bigint): Promise<RSVSignature | undefined>;
-}
-
-declare const utils: {
-    ChainSignaturesContractABI: typeof ChainSignaturesContractABI;
-    errors: typeof errors;
 };
 
 type index$1_ChainSignatureContract = ChainSignatureContract;
@@ -1115,7 +853,7 @@ declare namespace index$1 {
 
 type index_SignArgs = SignArgs;
 declare namespace index {
-  export { ChainSignatureContract$2 as ChainSignatureContract, type index_SignArgs as SignArgs, index$1 as evm, index$2 as near };
+  export { ChainSignatureContract$1 as ChainSignatureContract, type index_SignArgs as SignArgs, index$1 as near };
 }
 
-export { type ChainSigEvmMpcSignature, type ChainSigNearMpcSignature, type CompressedPubKeySEC1, type DerivedPublicKeyArgs, type Ed25519PubKey, type HashToSign, type KeyDerivationPath, type MPCSignature, type NajPublicKey, type NearNearMpcSignature, type RSVSignature, type Signature, type UncompressedPubKeySEC1, index$3 as chainAdapters, constants, index as contracts, index$8 as utils };
+export { type ChainSigEvmMpcSignature, type ChainSigNearMpcSignature, type CompressedPubKeySEC1, type DerivedPublicKeyArgs, type Ed25519PubKey, type HashToSign, type KeyDerivationPath, type MPCSignature, type NajPublicKey, type NearNearMpcSignature, type RSVSignature, type Signature, type UncompressedPubKeySEC1, index$2 as chainAdapters, constants, index as contracts, index$7 as utils };

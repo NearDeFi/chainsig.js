@@ -1,5 +1,4 @@
 import { type Transaction } from '@solana/web3.js'
-import { type Hash } from 'viem'
 
 import type { HashToSign, RSVSignature, Signature } from '@types'
 
