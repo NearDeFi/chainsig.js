@@ -1,8 +1,0 @@
-hoist=true
-hoist-pattern[]=*jest*
-hoist-pattern[]=*import-local*
-shamefully-hoist=true
-node-linker=hoisted
-public-hoist-pattern[]=*jest*
-public-hoist-pattern[]=*import-local*
-public-hoist-pattern[]=*ts-jest* 
