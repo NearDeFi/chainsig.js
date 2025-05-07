@@ -1,9 +1,8 @@
 import { base58 } from '@scure/base'
 import { ec as EC } from 'elliptic'
 import { sha3_256 } from 'js-sha3'
-import { keccak256 } from 'viem'
 
-import { KDF_CHAIN_IDS } from '@constants'
+import { KDF_CHAIN_ID } from '@constants'
 import {
   type NajPublicKey,
   type MPCSignature,
@@ -119,9 +118,7 @@ export function deriveChildPublicKey(
 
   let scalarHex = ''
 
-  if (chainId === KDF_CHAIN_IDS.ETHEREUM) {
-    scalarHex = keccak256(Buffer.from(derivationPath)).slice(2)
-  } else if (chainId === KDF_CHAIN_IDS.NEAR) {
+  if (chainId === KDF_CHAIN_ID) {
     scalarHex = sha3_256(derivationPath)
   } else {
     throw new Error('Invalid chain ID')

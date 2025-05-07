@@ -119,10 +119,6 @@ declare const ENVS: {
     readonly TESTNET: "TESTNET";
     readonly MAINNET: "MAINNET";
 };
-declare const CHAINS: {
-    readonly ETHEREUM: "ETHEREUM";
-    readonly NEAR: "NEAR";
-};
 /**
  * Root public keys for the Sig Network Smart Contracts across different environments.
  *
@@ -130,15 +126,11 @@ declare const CHAINS: {
  */
 declare const ROOT_PUBLIC_KEYS: Record<keyof typeof ENVS, NajPublicKey>;
 /**
- * Chain IDs used in the key derivation function (KDF) for deriving child public keys to
- * distinguish between different chains.
+ * Chain ID used in the key derivation function (KDF) for deriving child public keys.
  *
  * @see {@link deriveChildPublicKey} in cryptography.ts for usage details
  */
-declare const KDF_CHAIN_IDS: {
-    readonly ETHEREUM: "0x1";
-    readonly NEAR: "0x18d";
-};
+declare const KDF_CHAIN_ID: "0x18d";
 /**
  * Contract addresses for different chains and environments.
  *
@@ -148,15 +140,14 @@ declare const KDF_CHAIN_IDS: {
  *
  * @see ChainSignatureContract documentation for implementation details
  */
-declare const CONTRACT_ADDRESSES: Record<keyof typeof CHAINS, Record<keyof typeof ENVS, string>>;
+declare const CONTRACT_ADDRESSES: Record<keyof typeof ENVS, string>;
 
-declare const constants_CHAINS: typeof CHAINS;
 declare const constants_CONTRACT_ADDRESSES: typeof CONTRACT_ADDRESSES;
 declare const constants_ENVS: typeof ENVS;
-declare const constants_KDF_CHAIN_IDS: typeof KDF_CHAIN_IDS;
+declare const constants_KDF_CHAIN_ID: typeof KDF_CHAIN_ID;
 declare const constants_ROOT_PUBLIC_KEYS: typeof ROOT_PUBLIC_KEYS;
 declare namespace constants {
-  export { constants_CHAINS as CHAINS, constants_CONTRACT_ADDRESSES as CONTRACT_ADDRESSES, constants_ENVS as ENVS, constants_KDF_CHAIN_IDS as KDF_CHAIN_IDS, constants_ROOT_PUBLIC_KEYS as ROOT_PUBLIC_KEYS };
+  export { constants_CONTRACT_ADDRESSES as CONTRACT_ADDRESSES, constants_ENVS as ENVS, constants_KDF_CHAIN_ID as KDF_CHAIN_ID, constants_ROOT_PUBLIC_KEYS as ROOT_PUBLIC_KEYS };
 }
 
 declare const toRSV: (signature: MPCSignature) => RSVSignature;

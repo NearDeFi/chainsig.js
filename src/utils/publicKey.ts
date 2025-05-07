@@ -1,11 +1,10 @@
-import { CONTRACT_ADDRESSES, ROOT_PUBLIC_KEYS, type CHAINS } from '@constants'
+import { CONTRACT_ADDRESSES, ROOT_PUBLIC_KEYS } from '@constants'
 import type { NajPublicKey } from '@types'
 
 export const getRootPublicKey = (
-  contractAddress: string,
-  chain: keyof typeof CHAINS
+  contractAddress: string
 ): NajPublicKey | undefined => {
-  const environment = Object.entries(CONTRACT_ADDRESSES[chain]).find(
+  const environment = Object.entries(CONTRACT_ADDRESSES).find(
     ([_, address]) => address.toLowerCase() === contractAddress.toLowerCase()
   )?.[0] as keyof typeof ROOT_PUBLIC_KEYS | undefined
 
