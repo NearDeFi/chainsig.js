@@ -781,4 +781,4 @@ declare namespace index {
   export { index_ChainSignatureContract as ChainSignatureContract, type index_SignArgs as SignArgs, index_utils as utils };
 }
 
-export { type ChainSigEvmMpcSignature, type ChainSigNearMpcSignature, type CompressedPubKeySEC1, type DerivedPublicKeyArgs, type Ed25519PubKey, type HashToSign, type KeyDerivationPath, type MPCSignature, type NajPublicKey, type NearNearMpcSignature, type RSVSignature, type Signature, type UncompressedPubKeySEC1, index$1 as chainAdapters, constants, index as contracts, index$6 as utils };
+export { type ChainSigEvmMpcSignature, type ChainSigNearMpcSignature, type CompressedPubKeySEC1, type DerivedPublicKeyArgs, type Ed25519PubKey, type HashToSign, type KeyDerivationPath, type MPCSignature, type NajPublicKey, type NearNearMpcSignature, type RSVSignature, type Signature, type UncompressedPubKeySEC1, index$1 as chainAdapters, constants, index as mpcContract, index$6 as utils };
