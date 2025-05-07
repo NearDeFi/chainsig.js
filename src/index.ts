@@ -1,5 +1,5 @@
 export * as constants from './constants'
 export * as utils from './utils'
 export * as chainAdapters from './chain-adapters'
-export * as contracts from './contracts'
+export * as mpcContract from './mpc-contract'
 export * from './types'
