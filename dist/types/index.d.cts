@@ -50,9 +50,9 @@ interface BTCUnsignedTransaction {
     psbt: bitcoin.Psbt;
     publicKey: string;
 }
-type BTCNetworkIds = 'mainnet' | 'testnet' | 'regtest';
+type BTCNetworkId = 'mainnet' | 'testnet' | 'regtest';
 
-type CosmosNetworkIds = string;
+type CosmosNetworkId = string;
 type CosmosUnsignedTransaction = TxRaw;
 interface CosmosTransactionRequest {
     address: string;
@@ -102,14 +102,14 @@ interface UserOperationV6 {
     signature: Hex;
 }
 
-type ChainSignatureContractIds = string;
-type NearNetworkIds = 'mainnet' | 'testnet';
+type ChainSignatureContractId = string;
+type NearNetworkId = 'mainnet' | 'testnet';
 interface ChainProvider {
     providerUrl: string;
-    contract: ChainSignatureContractIds;
+    contract: ChainSignatureContractId;
 }
 interface NearAuthentication {
-    networkId: NearNetworkIds;
+    networkId: NearNetworkId;
     accountId: string;
 }
 interface SuccessResponse {
@@ -130,7 +130,7 @@ interface EVMRequest {
     derivationPath: string;
 }
 type BTCChainConfigWithProviders = ChainProvider & {
-    network: BTCNetworkIds;
+    network: BTCNetworkId;
 };
 interface BitcoinRequest {
     transaction: BTCTransactionRequest;
@@ -140,8 +140,8 @@ interface BitcoinRequest {
     derivationPath: string;
 }
 interface CosmosChainConfig {
-    contract: ChainSignatureContractIds;
-    chainId: CosmosNetworkIds;
+    contract: ChainSignatureContractId;
+    chainId: CosmosNetworkId;
 }
 interface CosmosRequest {
     chainConfig: CosmosChainConfig;
@@ -153,7 +153,7 @@ interface CosmosRequest {
 
 declare const mpcPayloadsToChainSigTransaction: ({ networkId, contractId, hashesToSign, path, }: {
     networkId: NetworkId;
-    contractId: ChainSignatureContractIds;
+    contractId: ChainSignatureContractId;
     hashesToSign: HashToSign[];
     path: KeyDerivationPath;
 }) => Promise<{
@@ -196,8 +196,8 @@ interface SignArgs {
     key_version: number;
 }
 interface ChainSignatureContractArgs {
-    networkId: NearNetworkIds;
-    contractId: ChainSignatureContractIds;
+    networkId: NearNetworkId;
+    contractId?: ChainSignatureContractId;
     accountId?: string;
     keypair?: KeyPair$1;
     rootPublicKey?: NajPublicKey;
@@ -224,6 +224,7 @@ declare class ChainSignatureContract {
         path: string;
         predecessor: string;
         IsEd25519?: boolean;
+        useRemoteDerivation?: boolean;
     }): Promise<UncompressedPubKeySEC1 | `Ed25519:${string}`>;
     getPublicKey(): Promise<UncompressedPubKeySEC1>;
     sign(args: SignArgs, options?: {
@@ -280,7 +281,6 @@ interface ChainSigEvmMpcSignature {
 type MPCSignature = NearNearMpcSignature | ChainSigNearMpcSignature | ChainSigEvmMpcSignature;
 
 declare const ENVS: {
-    readonly TESTNET_DEV: "TESTNET_DEV";
     readonly TESTNET: "TESTNET";
     readonly MAINNET: "MAINNET";
 };
@@ -291,15 +291,8 @@ declare const ENVS: {
  */
 declare const ROOT_PUBLIC_KEYS: Record<keyof typeof ENVS, NajPublicKey>;
 /**
- * Chain ID used in the key derivation function (KDF) for deriving child public keys.
- *
- * @see {@link deriveChildPublicKey} in cryptography.ts for usage details
- */
-declare const KDF_CHAIN_ID: "0x18d";
-/**
  * Contract addresses for different chains and environments.
  *
- * - Testnet Dev: Used for internal development, very unstable
  * - Testnet: Used for external development, stable
  * - Mainnet: Production contract address
  *
@@ -309,10 +302,9 @@ declare const CONTRACT_ADDRESSES: Record<keyof typeof ENVS, string>;
 
 declare const constants_CONTRACT_ADDRESSES: typeof CONTRACT_ADDRESSES;
 declare const constants_ENVS: typeof ENVS;
-declare const constants_KDF_CHAIN_ID: typeof KDF_CHAIN_ID;
 declare const constants_ROOT_PUBLIC_KEYS: typeof ROOT_PUBLIC_KEYS;
 declare namespace constants {
-  export { constants_CONTRACT_ADDRESSES as CONTRACT_ADDRESSES, constants_ENVS as ENVS, constants_KDF_CHAIN_ID as KDF_CHAIN_ID, constants_ROOT_PUBLIC_KEYS as ROOT_PUBLIC_KEYS };
+  export { constants_CONTRACT_ADDRESSES as CONTRACT_ADDRESSES, constants_ENVS as ENVS, constants_ROOT_PUBLIC_KEYS as ROOT_PUBLIC_KEYS };
 }
 
 declare const toRSV: (signature: MPCSignature) => RSVSignature;
@@ -377,7 +369,7 @@ declare abstract class ChainAdapter<TransactionRequest, UnsignedTransaction> {
      * @param path - The string path used to derive the key
      * @returns Promise resolving to the derived address and public key
      */
-    abstract deriveAddressAndPublicKey(predecessor: string, path: string): Promise<{
+    abstract deriveAddressAndPublicKey(predecessor: string, path: string, useRemoteDerivation?: boolean): Promise<{
         address: string;
         publicKey: string;
     }>;
@@ -459,7 +451,7 @@ declare class EVM extends ChainAdapter<EVMTransactionRequest, EVMUnsignedTransac
     private attachGasAndNonce;
     private transformRSVSignature;
     private assembleSignature;
-    deriveAddressAndPublicKey(predecessor: string, path: string): Promise<{
+    deriveAddressAndPublicKey(predecessor: string, path: string, useRemoteDerivation?: boolean): Promise<{
         address: string;
         publicKey: string;
     }>;
@@ -572,7 +564,7 @@ declare class Bitcoin extends ChainAdapter<BTCTransactionRequest, BTCUnsignedTra
      * @param params.btcRpcAdapter - Bitcoin RPC adapter for network interactions
      */
     constructor({ network, contract, btcRpcAdapter, }: {
-        network: BTCNetworkIds;
+        network: BTCNetworkId;
         contract: ChainSignatureContract;
         btcRpcAdapter: BTCRpcAdapter;
     });
@@ -603,7 +595,7 @@ declare class Bitcoin extends ChainAdapter<BTCTransactionRequest, BTCUnsignedTra
         balance: bigint;
         decimals: number;
     }>;
-    deriveAddressAndPublicKey(predecessor: string, path: string): Promise<{
+    deriveAddressAndPublicKey(predecessor: string, path: string, useRemoteDerivation?: boolean): Promise<{
         address: string;
         publicKey: string;
     }>;
@@ -623,7 +615,7 @@ declare class Bitcoin extends ChainAdapter<BTCTransactionRequest, BTCUnsignedTra
 }
 
 type index$4_BTCInput = BTCInput;
-type index$4_BTCNetworkIds = BTCNetworkIds;
+type index$4_BTCNetworkId = BTCNetworkId;
 type index$4_BTCOutput = BTCOutput;
 type index$4_BTCRpcAdapter = BTCRpcAdapter;
 declare const index$4_BTCRpcAdapter: typeof BTCRpcAdapter;
@@ -633,7 +625,7 @@ type index$4_BTCUnsignedTransaction = BTCUnsignedTransaction;
 type index$4_Bitcoin = Bitcoin;
 declare const index$4_Bitcoin: typeof Bitcoin;
 declare namespace index$4 {
-  export { type index$4_BTCInput as BTCInput, type index$4_BTCNetworkIds as BTCNetworkIds, type index$4_BTCOutput as BTCOutput, index$4_BTCRpcAdapter as BTCRpcAdapter, index$4_BTCRpcAdapters as BTCRpcAdapters, type BTCTransaction$1 as BTCTransaction, type index$4_BTCTransactionRequest as BTCTransactionRequest, type index$4_BTCUnsignedTransaction as BTCUnsignedTransaction, index$4_Bitcoin as Bitcoin };
+  export { type index$4_BTCInput as BTCInput, type index$4_BTCNetworkId as BTCNetworkId, type index$4_BTCOutput as BTCOutput, index$4_BTCRpcAdapter as BTCRpcAdapter, index$4_BTCRpcAdapters as BTCRpcAdapters, type BTCTransaction$1 as BTCTransaction, type index$4_BTCTransactionRequest as BTCTransactionRequest, type index$4_BTCUnsignedTransaction as BTCUnsignedTransaction, index$4_Bitcoin as Bitcoin };
 }
 
 /**
@@ -656,7 +648,7 @@ declare class Cosmos extends ChainAdapter<CosmosTransactionRequest, CosmosUnsign
      */
     constructor({ chainId, contract, endpoints, }: {
         contract: ChainSignatureContract;
-        chainId: CosmosNetworkIds;
+        chainId: CosmosNetworkId;
         endpoints?: {
             rpcUrl?: string;
             restUrl?: string;
@@ -668,7 +660,7 @@ declare class Cosmos extends ChainAdapter<CosmosTransactionRequest, CosmosUnsign
         balance: bigint;
         decimals: number;
     }>;
-    deriveAddressAndPublicKey(predecessor: string, path: string): Promise<{
+    deriveAddressAndPublicKey(predecessor: string, path: string, useRemoteDerivation?: boolean): Promise<{
         address: string;
         publicKey: string;
     }>;
@@ -687,11 +679,11 @@ declare class Cosmos extends ChainAdapter<CosmosTransactionRequest, CosmosUnsign
 
 type index$3_Cosmos = Cosmos;
 declare const index$3_Cosmos: typeof Cosmos;
-type index$3_CosmosNetworkIds = CosmosNetworkIds;
+type index$3_CosmosNetworkId = CosmosNetworkId;
 type index$3_CosmosTransactionRequest = CosmosTransactionRequest;
 type index$3_CosmosUnsignedTransaction = CosmosUnsignedTransaction;
 declare namespace index$3 {
-  export { index$3_Cosmos as Cosmos, type index$3_CosmosNetworkIds as CosmosNetworkIds, type index$3_CosmosTransactionRequest as CosmosTransactionRequest, type index$3_CosmosUnsignedTransaction as CosmosUnsignedTransaction };
+  export { index$3_Cosmos as Cosmos, type index$3_CosmosNetworkId as CosmosNetworkId, type index$3_CosmosTransactionRequest as CosmosTransactionRequest, type index$3_CosmosUnsignedTransaction as CosmosUnsignedTransaction };
 }
 
 interface SolanaTransactionRequest {
@@ -718,7 +710,7 @@ declare class Solana extends ChainAdapter<SolanaTransactionRequest, SolanaUnsign
         balance: bigint;
         decimals: number;
     }>;
-    deriveAddressAndPublicKey(predecessor: string, path: string): Promise<{
+    deriveAddressAndPublicKey(predecessor: string, path: string, useRemoteDerivation?: boolean): Promise<{
         address: string;
         publicKey: string;
     }>;

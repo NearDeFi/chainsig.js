@@ -1,24 +1,24 @@
 import type {
   BTCTransactionRequest,
-  BTCNetworkIds,
+  BTCNetworkId,
 } from '@chain-adapters/Bitcoin/types'
 import type {
-  CosmosNetworkIds,
+  CosmosNetworkId,
   CosmosTransactionRequest,
 } from '@chain-adapters/Cosmos/types'
 import { type EVMTransactionRequest } from '@chain-adapters/EVM/types'
 
-export type ChainSignatureContractIds = string
+export type ChainSignatureContractId = string
 
-export type NearNetworkIds = 'mainnet' | 'testnet'
+export type NearNetworkId = 'mainnet' | 'testnet'
 
 export interface ChainProvider {
   providerUrl: string
-  contract: ChainSignatureContractIds
+  contract: ChainSignatureContractId
 }
 
 export interface NearAuthentication {
-  networkId: NearNetworkIds
+  networkId: NearNetworkId
   accountId: string
 }
 
@@ -45,7 +45,7 @@ export interface EVMRequest {
 }
 
 export type BTCChainConfigWithProviders = ChainProvider & {
-  network: BTCNetworkIds
+  network: BTCNetworkId
 }
 
 export interface BitcoinRequest {
@@ -57,8 +57,8 @@ export interface BitcoinRequest {
 }
 
 export interface CosmosChainConfig {
-  contract: ChainSignatureContractIds
-  chainId: CosmosNetworkIds
+  contract: ChainSignatureContractId
+  chainId: CosmosNetworkId
 }
 
 export interface CosmosRequest {

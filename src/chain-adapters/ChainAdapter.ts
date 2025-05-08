@@ -25,7 +25,8 @@ export abstract class ChainAdapter<TransactionRequest, UnsignedTransaction> {
    */
   abstract deriveAddressAndPublicKey(
     predecessor: string,
-    path: string
+    path: string,
+    useRemoteDerivation?: boolean
   ): Promise<{
     address: string
     publicKey: string

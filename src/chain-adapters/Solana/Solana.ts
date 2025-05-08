@@ -46,12 +46,14 @@ export class Solana extends ChainAdapter<
 
   async deriveAddressAndPublicKey(
     predecessor: string,
-    path: string
+    path: string,
+    useRemoteDerivation?: boolean
   ): Promise<{ address: string; publicKey: string }> {
     const pubKey = await this.contract.getDerivedPublicKey({
       path,
       predecessor,
       IsEd25519: true,
+      useRemoteDerivation,
     })
 
     const base58Key = pubKey.replace('ed25519:', '')

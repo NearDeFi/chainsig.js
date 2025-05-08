@@ -18,7 +18,7 @@ import { withRetry } from 'viem'
 
 import { ChainSignatureContract } from '@mpc-contract/ChainSignatureContract'
 import { NEAR_MAX_GAS } from '@mpc-contract/constants'
-import { type ChainSignatureContractIds } from '@mpc-contract/types'
+import { type ChainSignatureContractId } from '@mpc-contract/types'
 import {
   type RSVSignature,
   type KeyDerivationPath,
@@ -34,7 +34,7 @@ export const mpcPayloadsToChainSigTransaction = async ({
   path,
 }: {
   networkId: NetworkId
-  contractId: ChainSignatureContractIds
+  contractId: ChainSignatureContractId
   hashesToSign: HashToSign[]
   path: KeyDerivationPath
 }): Promise<{

@@ -2,7 +2,7 @@
 export { Cosmos } from './Cosmos'
 
 export type {
-  CosmosNetworkIds,
+  CosmosNetworkId,
   CosmosTransactionRequest,
   CosmosUnsignedTransaction,
 } from './types'

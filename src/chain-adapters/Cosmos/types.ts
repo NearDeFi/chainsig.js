@@ -1,7 +1,7 @@
 import { type EncodeObject } from '@cosmjs/proto-signing'
 import { type TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx'
 
-export type CosmosNetworkIds = string
+export type CosmosNetworkId = string
 
 export type CosmosUnsignedTransaction = TxRaw
 

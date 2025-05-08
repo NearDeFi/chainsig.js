@@ -1,7 +1,6 @@
 import { type NajPublicKey } from '@types'
 
 export const ENVS = {
-  TESTNET_DEV: 'TESTNET_DEV',
   TESTNET: 'TESTNET',
   MAINNET: 'MAINNET',
 } as const
@@ -12,8 +11,6 @@ export const ENVS = {
  * These keys should never change.
  */
 export const ROOT_PUBLIC_KEYS: Record<keyof typeof ENVS, NajPublicKey> = {
-  [ENVS.TESTNET_DEV]:
-    'secp256k1:placeholder',
   [ENVS.TESTNET]:
     'secp256k1:4NfTiv3UsGahebgTaHyD9vF8KYKMBnfd6kh94mK6xv8fGBiJB8TBtFMP5WWXz6B89Ac1fbpzPwAvoyQebemHFwx3',
   [ENVS.MAINNET]:
@@ -21,24 +18,14 @@ export const ROOT_PUBLIC_KEYS: Record<keyof typeof ENVS, NajPublicKey> = {
 }
 
 /**
- * Chain ID used in the key derivation function (KDF) for deriving child public keys.
- *
- * @see {@link deriveChildPublicKey} in cryptography.ts for usage details
- */
-export const KDF_CHAIN_ID = '0x18d' as const
-
-
-/**
  * Contract addresses for different chains and environments.
  *
- * - Testnet Dev: Used for internal development, very unstable
  * - Testnet: Used for external development, stable
  * - Mainnet: Production contract address
  *
  * @see ChainSignatureContract documentation for implementation details
  */
 export const CONTRACT_ADDRESSES: Record<keyof typeof ENVS, string> = {
-    [ENVS.TESTNET_DEV]: 'v1.signer',
     [ENVS.TESTNET]: 'v1.signer-prod.testnet',
-    [ENVS.MAINNET]: 'v1.sig-net.near',
+    [ENVS.MAINNET]: 'v1.signer',
 }

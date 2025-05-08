@@ -3,7 +3,7 @@ import * as bitcoin from 'bitcoinjs-lib'
 import { type BTCRpcAdapter } from '@chain-adapters/Bitcoin/BTCRpcAdapter'
 import type {
   BTCInput,
-  BTCNetworkIds,
+  BTCNetworkId,
   BTCOutput,
   BTCTransactionRequest,
   BTCUnsignedTransaction,
@@ -24,7 +24,7 @@ export class Bitcoin extends ChainAdapter<
 > {
   private static readonly SATOSHIS_PER_BTC = 100_000_000
 
-  private readonly network: BTCNetworkIds
+  private readonly network: BTCNetworkId
   private readonly btcRpcAdapter: BTCRpcAdapter
   private readonly contract: ChainSignatureContract
 
@@ -40,7 +40,7 @@ export class Bitcoin extends ChainAdapter<
     contract,
     btcRpcAdapter,
   }: {
-    network: BTCNetworkIds
+    network: BTCNetworkId
     contract: ChainSignatureContract
     btcRpcAdapter: BTCRpcAdapter
   }) {
@@ -174,11 +174,13 @@ export class Bitcoin extends ChainAdapter<
 
   async deriveAddressAndPublicKey(
     predecessor: string,
-    path: string
+    path: string,
+    useRemoteDerivation?: boolean
   ): Promise<{ address: string; publicKey: string }> {
     const uncompressedPubKey = await this.contract.getDerivedPublicKey({
       path,
       predecessor,
+      useRemoteDerivation,
     })
 
     if (!uncompressedPubKey) {

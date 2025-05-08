@@ -45,4 +45,4 @@ export interface BTCUnsignedTransaction {
   publicKey: string
 }
 
-export type BTCNetworkIds = 'mainnet' | 'testnet' | 'regtest'
+export type BTCNetworkId = 'mainnet' | 'testnet' | 'regtest'

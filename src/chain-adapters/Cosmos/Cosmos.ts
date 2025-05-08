@@ -16,7 +16,7 @@ import { TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx'
 
 import { ChainAdapter } from '@chain-adapters/ChainAdapter'
 import type {
-  CosmosNetworkIds,
+  CosmosNetworkId,
   CosmosTransactionRequest,
   CosmosUnsignedTransaction,
   ChainInfo,
@@ -36,7 +36,7 @@ export class Cosmos extends ChainAdapter<
   CosmosUnsignedTransaction
 > {
   private readonly registry: Registry
-  private readonly chainId: CosmosNetworkIds
+  private readonly chainId: CosmosNetworkId
   private readonly contract: ChainSignatureContract
   private readonly endpoints?: {
     rpcUrl?: string
@@ -58,7 +58,7 @@ export class Cosmos extends ChainAdapter<
     endpoints,
   }: {
     contract: ChainSignatureContract
-    chainId: CosmosNetworkIds
+    chainId: CosmosNetworkId
     endpoints?: {
       rpcUrl?: string
       restUrl?: string
@@ -116,7 +116,8 @@ export class Cosmos extends ChainAdapter<
 
   async deriveAddressAndPublicKey(
     predecessor: string,
-    path: string
+    path: string,
+    useRemoteDerivation?: boolean
   ): Promise<{
     address: string
     publicKey: string
@@ -125,6 +126,7 @@ export class Cosmos extends ChainAdapter<
     const uncompressedPubKey = await this.contract.getDerivedPublicKey({
       path,
       predecessor,
+      useRemoteDerivation,
     })
 
     if (!uncompressedPubKey) {

@@ -9,5 +9,5 @@ export type {
   BTCTransaction,
   BTCOutput,
   BTCInput,
-  BTCNetworkIds,
+  BTCNetworkId,
 } from './types'

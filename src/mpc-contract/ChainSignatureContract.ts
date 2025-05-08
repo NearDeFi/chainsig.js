@@ -7,19 +7,20 @@ import BN from 'bn.js'
 
 import { getNearAccount } from '@mpc-contract/account'
 import { DONT_CARE_ACCOUNT_ID, NEAR_MAX_GAS } from '@mpc-contract/constants'
+import { CONTRACT_ADDRESSES, ENVS } from '@constants'
 import {
   responseToMpcSignature,
   type SendTransactionOptions,
   sendTransactionUntil,
 } from '@mpc-contract/transaction'
 import {
-  type NearNetworkIds,
-  type ChainSignatureContractIds,
+  type NearNetworkId,
+  type ChainSignatureContractId,
 } from '@mpc-contract/types'
 import type { RSVSignature, UncompressedPubKeySEC1, NajPublicKey } from '@types'
 import { cryptography } from '@utils'
 
-type NearContract = Contract & {
+type MpcContract = Contract & {
   public_key: () => Promise<NajPublicKey>
   experimental_signature_deposit: () => Promise<number>
   derived_public_key: (args: {
@@ -39,8 +40,8 @@ export interface SignArgs {
 }
 
 interface ChainSignatureContractArgs {
-  networkId: NearNetworkIds
-  contractId: ChainSignatureContractIds
+  networkId: NearNetworkId
+  contractId?: ChainSignatureContractId
   accountId?: string
   keypair?: KeyPair
   rootPublicKey?: NajPublicKey
@@ -55,8 +56,8 @@ interface ChainSignatureContractArgs {
  * and change methods (which require a valid NEAR account and keypair).
  */
 export class ChainSignatureContract {
-  private readonly networkId: NearNetworkIds
-  private readonly contractId: ChainSignatureContractIds
+  private readonly networkId: NearNetworkId
+  private readonly contractId: ChainSignatureContractId
   private readonly accountId: string
   private readonly keypair: KeyPair
   private readonly rootPublicKey?: NajPublicKey
@@ -70,17 +71,20 @@ export class ChainSignatureContract {
     rootPublicKey,
     sendTransactionOptions,
   }: ChainSignatureContractArgs) {
+    if (networkId !== 'testnet' && networkId !== 'mainnet') {
+      throw new Error(`Invalid networkId: ${networkId}. Must be either 'testnet' or 'mainnet'`)
+    }
+
     this.networkId = networkId
-    this.contractId = contractId
+    this.contractId = contractId || CONTRACT_ADDRESSES[networkId === 'testnet' ? ENVS.TESTNET : ENVS.MAINNET]
     this.accountId = accountId
     this.keypair = keypair
     this.sendTransactionOptions = sendTransactionOptions
-
     this.rootPublicKey =
       rootPublicKey || getRootPublicKey(this.contractId)
   }
 
-  private async getContract(): Promise<NearContract> {
+  private async getContract(): Promise<MpcContract> {
     const account = await getNearAccount({
       networkId: this.networkId,
       accountId: this.accountId,
@@ -97,7 +101,7 @@ export class ChainSignatureContract {
       // throws on NodeJs.
       changeMethods: [],
       useLocalViewExecution: false,
-    }) as unknown as NearContract
+    }) as unknown as MpcContract
   }
 
   async getCurrentSignatureDeposit(): Promise<BN> {
@@ -116,6 +120,7 @@ export class ChainSignatureContract {
     path: string
     predecessor: string
     IsEd25519?: boolean
+    useRemoteDerivation?: boolean 
   }): Promise<UncompressedPubKeySEC1 | `Ed25519:${string}`> {
     if (args.IsEd25519) {
       const contract = await this.getContract()
@@ -126,19 +131,21 @@ export class ChainSignatureContract {
       })) as `Ed25519:${string}`
     }
 
-    if (this.rootPublicKey) {
-      const pubKey = cryptography.deriveChildPublicKey(
-        await this.getPublicKey(),
-        args.predecessor.toLowerCase(),
-        args.path,
-      )
-      return pubKey
-    } else {
-      // Support for legacy contract
+    // If useRemoteDerivation is true or we don't have a rootPublicKey,
+    // we need to call the contract to get the derived public key
+    if (args.useRemoteDerivation || !this.rootPublicKey) {
       const contract = await this.getContract()
       const najPubKey = await contract.derived_public_key(args)
       return najToUncompressedPubKeySEC1(najPubKey as NajPublicKey)
     }
+
+    // Otherwise, derive the child public key locally
+    const pubKey = cryptography.deriveChildPublicKey(
+      await this.getPublicKey(),
+      args.predecessor.toLowerCase(),
+      args.path,
+    )
+    return pubKey
   }
 
   async getPublicKey(): Promise<UncompressedPubKeySEC1> {
