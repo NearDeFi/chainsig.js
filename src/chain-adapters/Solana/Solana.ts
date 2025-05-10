@@ -2,7 +2,7 @@ import type { Connection as SolanaConnection } from '@solana/web3.js'
 import { PublicKey, Transaction, SystemProgram } from '@solana/web3.js'
 import type BN from 'bn.js'
 
-import type { BaseChainSignatureContract } from '@contracts/ChainSignatureContract'
+import type { ChainSignatureContract } from '@contracts/ChainSignatureContract'
 import type { HashToSign, Signature } from '@types'
 
 import { ChainAdapter } from '../ChainAdapter'
@@ -22,11 +22,11 @@ export class Solana extends ChainAdapter<
   SolanaUnsignedTransaction
 > {
   private readonly connection: SolanaConnection
-  private readonly contract: BaseChainSignatureContract
+  private readonly contract: ChainSignatureContract
 
   constructor(args: {
     solanaConnection: SolanaConnection
-    contract: BaseChainSignatureContract
+    contract: ChainSignatureContract
   }) {
     super()
     this.connection = args.solanaConnection

@@ -139,3 +139,15 @@ export function deriveChildPublicKey(
 
   return `04${newX}${newY}`
 }
+
+/**
+ * Converts a Uint8Array to a hexadecimal string.
+ *
+ * @param uint8Array - The Uint8Array to convert.
+ * @returns The hexadecimal string representation of the Uint8Array.
+ */
+export const uint8ArrayToHex = (uint8Array: number[]): string => {
+  return Array.from(uint8Array)
+    .map((byte) => byte.toString(16).padStart(2, '0'))
+    .join('')
+}

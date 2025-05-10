@@ -1,4 +1,11 @@
-export { ChainSignatureContract, type SignArgs } from './ChainSignatureContract'
+// TODO: fix signAndSend
+// import * as signAndSend from './signAndSend'
+import * as transaction from './transaction'
+export * from './ChainSignatureContract'
 
-export * as near from './near'
-export * as evm from './evm'
+const utils = {
+  transaction,
+  // signAndSend,
+}
+
+export { utils }

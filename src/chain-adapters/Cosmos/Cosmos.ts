@@ -23,7 +23,7 @@ import type {
   BalanceResponse,
 } from '@chain-adapters/Cosmos/types'
 import { fetchChainInfo } from '@chain-adapters/Cosmos/utils'
-import type { BaseChainSignatureContract } from '@contracts/ChainSignatureContract'
+import type { ChainSignatureContract } from '@contracts/ChainSignatureContract'
 import type { HashToSign, RSVSignature, UncompressedPubKeySEC1 } from '@types'
 import { cryptography } from '@utils'
 
@@ -37,7 +37,7 @@ export class Cosmos extends ChainAdapter<
 > {
   private readonly registry: Registry
   private readonly chainId: CosmosNetworkIds
-  private readonly contract: BaseChainSignatureContract
+  private readonly contract: ChainSignatureContract
   private readonly endpoints?: {
     rpcUrl?: string
     restUrl?: string
@@ -57,7 +57,7 @@ export class Cosmos extends ChainAdapter<
     contract,
     endpoints,
   }: {
-    contract: BaseChainSignatureContract
+    contract: ChainSignatureContract
     chainId: CosmosNetworkIds
     endpoints?: {
       rpcUrl?: string

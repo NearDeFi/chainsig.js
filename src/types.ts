@@ -1,6 +1,4 @@
-import { type SignArgs } from '@contracts/ChainSignatureContract'
-
-export type HashToSign = SignArgs['payload']
+export { type HashToSign } from '@contracts/ChainSignatureContract'
 
 type Base58String = string
 
@@ -22,9 +20,15 @@ export interface Signature {
   signature: number[]
 }
 
+type Scheme = 'secp256k1' | 'ed25519' | 'Ed25519' | 'Secp256k1'
+
 export interface KeyDerivationPath {
   index: number
-  scheme: 'secp256k1' | 'ed25519'
+  scheme: Scheme
+}
+
+export interface Ed25519Signature {
+  signature: number[]
 }
 
 export interface RSVSignature {
@@ -59,3 +63,5 @@ export type MPCSignature =
   | NearNearMpcSignature
   | ChainSigNearMpcSignature
   | ChainSigEvmMpcSignature
+  | { scheme: Scheme }
+  | Ed25519Signature
