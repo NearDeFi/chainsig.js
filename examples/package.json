@@ -1,0 +1,28 @@
+{
+  "type": "module",
+  "dependencies": {
+    "@near-js/accounts": "^2.0.1",
+    "@near-js/crypto": "^2.0.1",
+    "@near-js/providers": "^2.0.1",
+    "@near-js/signers": "^2.0.1",
+    "@near-js/utils": "^2.0.1",
+    "@near-wallet-selector/wallet-utils": "^8.10.2",
+    "@solana/web3.js": "^1.98.2",
+    "chainsig.js": "link:..",
+    "dotenv": "^16.5.0",
+    "viem": "^2.30.0"
+  },
+  "scripts": {
+    "send-eth": "tsx send-eth.ts",
+    "send-btc": "tsx send-btc.ts",
+    "send-sol": "tsx send-sol.ts"
+  },
+  "pnpm": {
+    "overrides": {
+      "chainsig.js": "link:.."
+    }
+  },
+  "devDependencies": {
+    "tsx": "^4.19.4"
+  }
+}

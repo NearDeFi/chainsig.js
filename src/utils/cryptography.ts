@@ -1,6 +1,6 @@
 import { base58 } from '@scure/base'
-import { ec as EC } from 'elliptic'
-import { sha3_256 } from 'js-sha3'
+import elliptic from 'elliptic'
+import sha from 'js-sha3'
 import { keccak256 } from 'viem'
 
 import { KDF_CHAIN_IDS } from '@constants'
@@ -112,7 +112,8 @@ export function deriveChildPublicKey(
   path: string = '',
   chainId: string
 ): UncompressedPubKeySEC1 {
-  const ec = new EC('secp256k1')
+  // eslint-disable-next-line new-cap
+  const ec = new elliptic.ec('secp256k1')
 
   const EPSILON_DERIVATION_PREFIX = 'sig.network v1.0.0 epsilon derivation'
   const derivationPath = `${EPSILON_DERIVATION_PREFIX},${chainId},${predecessorId},${path}`
@@ -122,7 +123,7 @@ export function deriveChildPublicKey(
   if (chainId === KDF_CHAIN_IDS.ETHEREUM) {
     scalarHex = keccak256(Buffer.from(derivationPath)).slice(2)
   } else if (chainId === KDF_CHAIN_IDS.NEAR) {
-    scalarHex = sha3_256(derivationPath)
+    scalarHex = sha.sha3_256(derivationPath)
   } else {
     throw new Error('Invalid chain ID')
   }

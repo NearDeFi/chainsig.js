@@ -5,22 +5,22 @@
   "type": "module",
   "exports": {
     ".": {
-      "types": "./types/index.d.ts",
+      "types": "./dist/esm/index.d.ts",
       "browser": {
         "import": "./browser/index.browser.js",
         "require": "./browser/index.browser.cjs"
       },
       "node": {
-        "import": "./node/index.node.js",
-        "require": "./node/index.node.cjs"
+        "import": "./dist/esm/index.js",
+        "require": "./dist/esm/index.node.cjs"
       },
       "default": "./browser/index.browser.js"
     }
   },
-  "main": "./node/index.node.cjs",
-  "module": "./node/index.node.js",
+  "main": "./dist/node/index.node.cjs",
+  "module": "./dist/esm/index.js",
   "browser": "./browser/index.browser.js",
-  "types": "./types/index.d.ts",
+  "types": "./dist/esm/index.d.ts",
   "scripts": {
     "watch": "tsup --watch --env.TARGET=browser",
     "build": "rm -rf ./dist && tsc -p tsconfig.build.json",
