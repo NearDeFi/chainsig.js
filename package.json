@@ -102,6 +102,7 @@
     "vocs": "1.0.0-alpha.62"
   },
   "dependencies": {
+    "@aptos-labs/ts-sdk": "^2.0.1",
     "@cosmjs/amino": "^0.32.4",
     "@cosmjs/crypto": "^0.32.4",
     "@cosmjs/encoding": "^0.32.4",

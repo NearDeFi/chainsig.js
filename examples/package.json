@@ -1,6 +1,7 @@
 {
   "type": "module",
   "dependencies": {
+    "@aptos-labs/ts-sdk": "^2.0.1",
     "@near-js/accounts": "^2.0.1",
     "@near-js/crypto": "^2.0.1",
     "@near-js/providers": "^2.0.1",
