@@ -23,7 +23,7 @@ interface ViewMethodParams {
   args?: Record<string, unknown>
 }
 
-export type HashToSign = number[]
+export type HashToSign = number[] | Uint8Array<ArrayBufferLike>
 
 export interface SignArgs<T = unknown> {
   payloads: HashToSign[]

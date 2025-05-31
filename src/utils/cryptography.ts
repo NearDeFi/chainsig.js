@@ -147,7 +147,9 @@ export function deriveChildPublicKey(
  * @param uint8Array - The Uint8Array to convert.
  * @returns The hexadecimal string representation of the Uint8Array.
  */
-export const uint8ArrayToHex = (uint8Array: number[]): string => {
+export const uint8ArrayToHex = (
+  uint8Array: number[] | Uint8Array<ArrayBufferLike>
+): string => {
   return Array.from(uint8Array)
     .map((byte) => byte.toString(16).padStart(2, '0'))
     .join('')
