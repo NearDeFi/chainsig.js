@@ -18,7 +18,9 @@ import {
   concat,
   pad,
   isAddress,
+  SignedAuthorization,
 } from 'viem'
+import { hashAuthorization } from 'viem/experimental'
 
 import { ChainAdapter } from '@chain-adapters/ChainAdapter'
 import type {
@@ -28,6 +30,7 @@ import type {
   EVMTypedData,
   UserOperationV6,
   UserOperationV7,
+  EVMAuthorizationRequest,
 } from '@chain-adapters/EVM/types'
 import { fetchEVMFeeProperties } from '@chain-adapters/EVM/utils'
 import type { ChainSignatureContract } from '@contracts/ChainSignatureContract'
@@ -37,10 +40,7 @@ import type { HashToSign, RSVSignature } from '@types'
  * Implementation of the ChainAdapter interface for EVM-compatible networks.
  * Handles interactions with Ethereum Virtual Machine based blockchains like Ethereum, BSC, Polygon, etc.
  */
-export class EVM extends ChainAdapter<
-  EVMTransactionRequest,
-  EVMUnsignedTransaction
-> {
+export class EVM extends ChainAdapter<EVMTransactionRequest, EVMUnsignedTransaction> {
   private readonly client: PublicClient
   private readonly contract: ChainSignatureContract
 
@@ -269,6 +269,23 @@ export class EVM extends ChainAdapter<
     }
   }
 
+  prepareAuthorizationForSigning(params: EVMAuthorizationRequest): {
+    hashToSign: HashToSign
+  } {
+    const address = params.contractAddress ?? params.address
+    return {
+      hashToSign: Array.from(
+        toBytes(
+          hashAuthorization({
+            address,
+            chainId: params.chainId,
+            nonce: params.nonce,
+          })
+        )
+      ),
+    }
+  }
+
   finalizeTransactionSigning({
     transaction,
     rsvSignatures,
@@ -317,6 +334,19 @@ export class EVM extends ChainAdapter<
         s,
         numberToHex(Number(yParity + 27), { size: 1 }),
       ]),
+    }
+  }
+
+  finalizeAuthorizationSigning(params: {
+    authorization: EVMAuthorizationRequest
+    rsvSignature: RSVSignature
+  }): SignedAuthorization {
+    return {
+      address:
+        params.authorization.contractAddress ?? params.authorization.address,
+      chainId: params.authorization.chainId,
+      nonce: params.authorization.nonce,
+      ...this.transformRSVSignature(params.rsvSignature),
     }
   }
 

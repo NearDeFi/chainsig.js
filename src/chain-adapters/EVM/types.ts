@@ -5,6 +5,7 @@ import type {
   TypedDataDefinition,
   SignableMessage,
 } from 'viem'
+import { HashAuthorizationParameters } from 'viem/experimental'
 
 export type EVMUnsignedTransaction = TransactionRequest & {
   type: 'eip1559'
@@ -15,6 +16,8 @@ export interface EVMTransactionRequest
   extends Omit<EVMUnsignedTransaction, 'chainId' | 'type'> {
   from: Address
 }
+
+export type EVMAuthorizationRequest = HashAuthorizationParameters<"hex">
 
 export type EVMMessage = SignableMessage
 
