@@ -1,6 +1,6 @@
-import { KeyPairSigner } from '@near-js/signers'
-import { Account } from '@near-js/accounts'
-import { JsonRpcProvider } from '@near-js/providers'
+import { InMemoryKeyStore } from '@near-js/keystores'
+import { KeyPair } from '@near-js/crypto'
+import { connect, Near } from 'near-api-js'
 import { getTransactionLastResult } from '@near-js/utils'
 import { Action } from '@near-js/transactions'
 import { contracts, chainAdapters } from 'chainsig.js'
@@ -13,99 +13,109 @@ import { Connection as SolanaConnection } from '@solana/web3.js'
 import dotenv from 'dotenv'
 import { KeyPairString } from '@near-js/crypto'
 
-// Load environment variables
-dotenv.config({ path: '.env' }) // Path relative to the working directory
+async function main() {
+  // Load environment variables
+  dotenv.config({ path: '.env' }) // Path relative to the working directory
 
-// Create an account object
-const accountId = process.env.ACCOUNT_ID!
-// Create a signer from a private key string
-const privateKey = process.env.PRIVATE_KEY as KeyPairString
-const signer = KeyPairSigner.fromSecretKey(privateKey) // ed25519:5Fg2...
+  // Create an account object
+  const accountId = process.env.ACCOUNT_ID!
+  // Create a signer from a private key string
+  const privateKey = process.env.PRIVATE_KEY as KeyPairString
+  const keyPair = KeyPair.fromString(privateKey) // ed25519:5Fg2...
 
-// Create a connection to testnet RPC
-const provider = new JsonRpcProvider({
-  url: 'https://test.rpc.fastnear.com',
-})
+  // Create a keystore and add the key
+  const keyStore = new InMemoryKeyStore()
+  await keyStore.setKey('testnet', accountId, keyPair)
 
-const account = new Account(accountId, provider, signer)
+  // Create a connection to testnet
+  const near = await connect({
+    networkId: 'testnet',
+    keyStore: keyStore as any,
+    nodeUrl: 'https://test.rpc.fastnear.com',
+  })
 
-const contract = new contracts.ChainSignatureContract({
-  networkId: 'testnet',
-  contractId: 'v1.signer-prod.testnet',
-})
+  const account = await near.account(accountId)
 
-const connection = new SolanaConnection('https://api.devnet.solana.com')
+  const contract = new contracts.ChainSignatureContract({
+    networkId: 'testnet',
+    contractId: 'v1.signer-prod.testnet',
+  })
 
-const derivationPath = 'any_string'
+  const connection = new SolanaConnection('https://api.devnet.solana.com')
 
-const solChain = new chainAdapters.solana.Solana({
-  solanaConnection: connection,
-  contract: contract,
-})
+  const derivationPath = 'any_string'
 
-// Derive address and public key
-const { address, publicKey } = await solChain.deriveAddressAndPublicKey(
-  accountId,
-  derivationPath
-)
+  const solChain = new chainAdapters.solana.Solana({
+    solanaConnection: connection,
+    contract: contract,
+  })
 
-console.log('address', address)
+  // Derive address and public key
+  const { address, publicKey } = await solChain.deriveAddressAndPublicKey(
+    accountId,
+    derivationPath
+  )
 
-// Check balance
-const { balance, decimals } = await solChain.getBalance(address)
+  console.log('address', address)
 
-console.log('balance', balance)
+  // Check balance
+  const { balance, decimals } = await solChain.getBalance(address)
 
-// Create and sign transaction
-const {
-  transaction: { transaction },
-} = await solChain.prepareTransactionForSigning({
-  from: address,
-  to: '7CmF6R7kv77twtfRfwgXMrArmqLZ7M6tXbJa9SAUnviH',
-  amount: 1285141n,
-})
+  console.log('balance', balance)
 
-// Sign with MPC
-const signatures = await contract.sign({
-  // @ts-expect-error
-  payloads: [transaction.serializeMessage()],
-  path: derivationPath,
-  keyType: 'Eddsa',
-  signerAccount: {
-    accountId: account.accountId,
-    signAndSendTransactions: async ({
-      transactions: walletSelectorTransactions,
-    }) => {
-      const transactions = walletSelectorTransactions.map((tx) => {
-        return {
-          receiverId: tx.receiverId,
-          actions: tx.actions.map((a) => createAction(a)),
-        } satisfies { receiverId: string; actions: Action[] }
-      })
+  // Create and sign transaction
+  const {
+    transaction: { transaction },
+  } = await solChain.prepareTransactionForSigning({
+    from: address,
+    to: '7CmF6R7kv77twtfRfwgXMrArmqLZ7M6tXbJa9SAUnviH',
+    amount: 1285141n,
+  })
 
-      const txs = await account.signAndSendTransactions({
-        transactions,
-        waitUntil: 'FINAL',
-      })
+  // Sign with MPC
+  const signatures = await contract.sign({
+    payloads: [transaction.serializeMessage()],
+    path: derivationPath,
+    keyType: 'Eddsa',
+    signerAccount: {
+      accountId: account.accountId,
+      signAndSendTransactions: async ({
+        transactions: walletSelectorTransactions,
+      }) => {
+        const transactions = walletSelectorTransactions.map((tx) => {
+          return {
+            receiverId: tx.receiverId,
+            actions: tx.actions.map((a) => createAction(a)),
+          } satisfies { receiverId: string; actions: Action[] }
+        })
 
-      console.dir(txs, { depth: Infinity })
+        const txs: any[] = []
+        for (const transaction of transactions) {
+          const tx = await account.signAndSendTransaction(transaction)
+          txs.push(tx)
+        }
 
-      return txs.map((tx) => getTransactionLastResult(tx))
+        console.dir(txs, { depth: Infinity })
+
+        return txs.map((tx) => getTransactionLastResult(tx))
+      },
     },
-  },
-})
+  })
 
-if (signatures.length === 0) throw new Error(`No signatures`);
+  if (signatures.length === 0) throw new Error(`No signatures`);
 
-// Add signature
-const signedTx = solChain.finalizeTransactionSigning({
-  transaction,
-  rsvSignatures: signatures[0]!,
-  senderAddress: address,
-})
+  // Add signature
+  const signedTx = solChain.finalizeTransactionSigning({
+    transaction,
+    rsvSignatures: signatures[0]! as any,
+    senderAddress: address,
+  })
 
-// Broadcast transaction
-const { hash: txHash } = await solChain.broadcastTx(signedTx)
+  // Broadcast transaction
+  const { hash: txHash } = await solChain.broadcastTx(signedTx)
 
-// Print link to transaction on Solana Explorer
-console.log(`https://explorer.solana.com/tx/${txHash}?cluster=devnet`)
+  // Print link to transaction on Solana Explorer
+  console.log(`https://explorer.solana.com/tx/${txHash}?cluster=devnet`)
+}
+
+main().catch(console.error)
