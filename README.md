@@ -25,6 +25,7 @@ The library provides chain adapters for the following blockchain networks:
 - **Solana**: High-performance blockchain with native token transfers
 - **Aptos**: Move-based blockchain with Ed25519 signature support
 - **SUI**: Move-based blockchain with Ed25519 signature support
+- **XRP Ledger**: XRP mainnet, testnet, and devnet with native XRP transfers
 
 Each chain adapter provides a unified interface for:
 - Address and public key derivation
