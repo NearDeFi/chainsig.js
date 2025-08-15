@@ -4,6 +4,7 @@ import { Transaction as NearTransaction, SignedTransaction as NearSignedTransact
 import type { FinalExecutionOutcome, NetworkId } from '@near-wallet-selector/core'
 import { KeyPair } from '@near-js/crypto'
 import { baseDecode } from '@near-js/utils'
+import { createHash } from 'node:crypto'
 import { withRetry } from 'viem'
 
 import { type RSVSignature, type MPCSignature, type Ed25519Signature } from '@types'
@@ -81,8 +82,9 @@ export const sendTransactionUntil = async ({
 
   const serializedTx = nearEncodeTransaction(tx)
 
-  // Sign using raw keypair (same as near-api-js signer)
-  const signature = keypair.sign(serializedTx)
+  // NEAR signs the SHA-256 hash of the serialized transaction
+  const digest = createHash('sha256').update(serializedTx).digest()
+  const signature = keypair.sign(digest)
 
   const signedTransaction = new NearSignedTransaction({
     transaction: tx,

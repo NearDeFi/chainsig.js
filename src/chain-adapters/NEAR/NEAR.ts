@@ -31,9 +31,24 @@ export class NEAR extends ChainAdapter<NearTransactionRequest, NearUnsignedTrans
     this.networkId = args.networkId
   }
 
+  private isAccountDoesNotExistError(error: unknown): boolean {
+    const msg = (error as any)?.message?.toString?.() || ''
+    const type = (error as any)?.type?.toString?.() || ''
+    return type === 'AccountDoesNotExist' || msg.includes('AccountDoesNotExist') || msg.includes("doesn't exist") || msg.includes('does not exist')
+  }
+
   async getBalance(address: string): Promise<{ balance: bigint; decimals: number }> {
-    const res = (await this.provider.query<any>(`account/${address}`, '')) as any
-    return { balance: BigInt(res.amount), decimals: 24 }
+    try {
+      const res = (await this.provider.query<any>(`account/${address}`, '')) as any
+      return { balance: BigInt(res.amount), decimals: 24 }
+    } catch (e) {
+      if (this.isAccountDoesNotExistError(e)) {
+        throw new Error(
+          `NEAR derived account not found: ${address}. Create & fund it or call chainAdapters.near.utils.ensureDerivedAccountExists(...) before sending.`
+        )
+      }
+      throw e
+    }
   }
 
   async deriveAddressAndPublicKey(predecessor: string, path: string): Promise<{ address: string; publicKey: string }> {
@@ -56,7 +71,17 @@ export class NEAR extends ChainAdapter<NearTransactionRequest, NearUnsignedTrans
 
   async prepareTransactionForSigning(request: NearTransactionRequest): Promise<{ transaction: NearUnsignedTransaction; hashesToSign: HashToSign[] }> {
     const { from, to, amount, publicKey } = request
-    const accessKey = (await this.provider.query<any>(`access_key/${from}/${publicKey}`, '')) as any
+    let accessKey: any
+    try {
+      accessKey = (await this.provider.query<any>(`access_key/${from}/${publicKey}`, '')) as any
+    } catch (e) {
+      if (this.isAccountDoesNotExistError(e)) {
+        throw new Error(
+          `NEAR derived account not found: ${from}. Create & fund it or call chainAdapters.near.utils.ensureDerivedAccountExists({ derivedAccountId: "${from}", mpcPublicKey: "${publicKey}" }).`
+        )
+      }
+      throw e
+    }
     const block = await this.provider.block({ finality: 'final' })
     const recentBlockHash = baseDecode((accessKey?.block_hash as string) ?? block.header.hash)
     const txPublicKey = NearPublicKey.fromString(accessKey?.public_key ? accessKey.public_key : publicKey)

@@ -1,17 +1,7 @@
-import { InMemoryKeyStore } from '@near-js/keystores'
-import { KeyPair, type KeyPairString } from '@near-js/crypto'
-import { JsonRpcProvider } from '@near-js/providers'
-import { getTransactionLastResult, baseDecode } from '@near-js/utils'
-import {
-  Transaction as NearTransaction,
-  SignedTransaction as NearSignedTransaction,
-  encodeTransaction as nearEncodeTransaction,
-  Signature as NearSignature,
-  Action as NearAction,
-  FunctionCall as NearFunctionCall,
-} from '@near-js/transactions'
-import { createHash } from 'node:crypto'
+import { getTransactionLastResult } from '@near-js/utils'
+import { KeyPair } from 'near-api-js'
 import dotenv from 'dotenv'
+import { createAction } from '@near-wallet-selector/wallet-utils'
 
 import { contracts, chainAdapters } from 'chainsig.js'
 
@@ -19,14 +9,10 @@ async function main() {
   dotenv.config({ path: '.env' })
 
   const accountId = process.env.ACCOUNT_ID!
-  const privateKey = process.env.PRIVATE_KEY as KeyPairString
+  const privateKey = process.env.PRIVATE_KEY as string
   if (!accountId || !privateKey) throw new Error('ACCOUNT_ID and PRIVATE KEY are required')
 
   const keyPair = KeyPair.fromString(privateKey)
-  const keyStore = new InMemoryKeyStore()
-  await keyStore.setKey('testnet', accountId, keyPair)
-
-  const provider = new JsonRpcProvider({ url: 'https://test.rpc.fastnear.com' })
 
   const contract = new contracts.ChainSignatureContract({
     networkId: 'testnet',
@@ -39,10 +25,21 @@ async function main() {
     contract,
   })
 
-  const derivationPath = 'near-1'
+  const derivationPath = 'near-3'
 
   const { address, publicKey } = await nearChain.deriveAddressAndPublicKey(accountId, derivationPath)
   console.log('Derived account:', address)
+
+  // Optional: auto-create & fund derived account with MPC full-access key.
+  // Enable by uncommenting below and set desired initial deposit.
+  await chainAdapters.near.utils.ensureDerivedAccountExists({
+    provider: new (await import('@near-js/providers')).JsonRpcProvider({ url: 'https://test.rpc.fastnear.com' }),
+    controllerAccountId: accountId,
+    controllerKeyPair: keyPair,
+    derivedAccountId: address,
+    mpcPublicKey: publicKey,
+    initialDepositYocto: 1_000_000_000_000_000_000_000_000n, // 1 NEAR
+  })
 
   const { balance, decimals } = await nearChain.getBalance(address)
   console.log(`Balance: ${balance} (decimals: ${decimals})`)
@@ -60,49 +57,17 @@ async function main() {
     keyType: 'Eddsa',
     signerAccount: {
       accountId,
-      signAndSendTransactions: async ({ transactions: walletSelectorTransactions }) => {
+      signAndSendTransactions: async ({ transactions }) => {
         const results: any[] = []
-        const pubKey = keyPair.getPublicKey()
-        for (const tx of walletSelectorTransactions) {
-          const accessKey = (await provider.query(`access_key/${accountId}/${pubKey.toString()}`, '')) as any
-          const recentBlockHash = baseDecode(accessKey.block_hash)
-          const nextNonce = BigInt((accessKey.nonce ?? 0) + 1)
-
-          const actions: NearAction[] = tx.actions.map((a: any) => {
-            if (a.type !== 'FunctionCall') throw new Error('Unsupported action in example')
-            const gas = BigInt(a.params.gas)
-            const deposit = BigInt(a.params.deposit)
-            const argsBytes = Buffer.from(JSON.stringify(a.params.args))
-            return new NearAction({
-              functionCall: new NearFunctionCall({
-                methodName: a.params.methodName,
-                args: argsBytes,
-                gas,
-                deposit,
-              }),
-            })
-          })
-
-          const nearTx = new NearTransaction({
-            signerId: accountId,
-            publicKey: pubKey,
-            nonce: nextNonce,
+        for (const tx of transactions) {
+          const actions = tx.actions.map((a: any) => createAction(a))
+          const outcome = await contracts.utils.transaction.sendTransactionUntil({
+            accountId,
+            keypair: keyPair,
+            networkId: 'testnet',
             receiverId: tx.receiverId,
             actions,
-            blockHash: recentBlockHash,
           })
-
-          const encoded = nearEncodeTransaction(nearTx)
-          const digest = createHash('sha256').update(encoded).digest()
-          const sig = keyPair.sign(digest)
-          const signedTx = new NearSignedTransaction({
-            transaction: nearTx,
-            signature: new NearSignature({ keyType: pubKey.keyType, data: sig.signature }),
-          })
-
-          const sent = await provider.sendTransaction(signedTx)
-          const txHash = (sent as any).transaction.hash
-          const outcome = await provider.txStatus(txHash, accountId, 'FINAL')
           results.push(getTransactionLastResult(outcome as any))
         }
         return results
