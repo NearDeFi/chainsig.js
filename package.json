@@ -139,7 +139,6 @@
     "cosmjs-types": "^0.9.0",
     "elliptic": "^6.6.1",
     "js-sha3": "^0.9.3",
-    "near-api-js": "5.1.1",
     "ripple-address-codec": "^5.0.0",
     "ripple-binary-codec": "^2.3.0",
     "viem": "^2.22.14",

@@ -10375,7 +10375,7 @@ near-abi@0.2.0:
   dependencies:
     "@types/json-schema" "^7.0.11"
 
-"near-api-js@^4.0.0 || ^5.0.0", near-api-js@5.1.1:
+"near-api-js@^4.0.0 || ^5.0.0":
   version "5.1.1"
   resolved "https://registry.npmjs.org/near-api-js/-/near-api-js-5.1.1.tgz"
   integrity sha512-h23BGSKxNv8ph+zU6snicstsVK1/CTXsQz4LuGGwoRE24Hj424nSe4+/1tzoiC285Ljf60kPAqRCmsfv9etF2g==

@@ -2,21 +2,27 @@ import { InMemoryKeyStore } from '@near-js/keystores'
 import { KeyPair, type KeyPairString } from '@near-js/crypto'
 import { JsonRpcProvider } from '@near-js/providers'
 import { getTransactionLastResult, baseDecode } from '@near-js/utils'
-import { Action, Transaction as NearTransaction, SignedTransaction as NearSignedTransaction, Signature as NearSignature, FunctionCall as NearFunctionCall, encodeTransaction as nearEncodeTransaction } from '@near-js/transactions'
+import {
+  Transaction as NearTransaction,
+  SignedTransaction as NearSignedTransaction,
+  encodeTransaction as nearEncodeTransaction,
+  Signature as NearSignature,
+  Action as NearAction,
+  FunctionCall as NearFunctionCall,
+} from '@near-js/transactions'
 import { createHash } from 'node:crypto'
-import { contracts, chainAdapters } from 'chainsig.js'
-import { createPublicClient, http } from 'viem'
-import { sepolia } from 'viem/chains'
-
 import dotenv from 'dotenv'
+
+import { contracts, chainAdapters } from 'chainsig.js'
 
 async function main() {
   dotenv.config({ path: '.env' })
 
   const accountId = process.env.ACCOUNT_ID!
   const privateKey = process.env.PRIVATE_KEY as KeyPairString
-  const keyPair = KeyPair.fromString(privateKey)
+  if (!accountId || !privateKey) throw new Error('ACCOUNT_ID and PRIVATE KEY are required')
 
+  const keyPair = KeyPair.fromString(privateKey)
   const keyStore = new InMemoryKeyStore()
   await keyStore.setKey('testnet', accountId, keyPair)
 
@@ -27,28 +33,31 @@ async function main() {
     contractId: 'v1.signer-prod.testnet',
   })
 
-  const publicClient = createPublicClient({ chain: sepolia, transport: http() })
-
-  const derivationPath = 'any_string'
-
-  const evmChain = new chainAdapters.evm.EVM({ publicClient: publicClient as any, contract })
-
-  const { address } = await evmChain.deriveAddressAndPublicKey(accountId, derivationPath)
-  console.log('address', address)
-
-  const { balance } = await evmChain.getBalance(address)
-  console.log('balance', balance)
-
-  const { transaction, hashesToSign } = await evmChain.prepareTransactionForSigning({
-    from: address as `0x${string}`,
-    to: '0x427F9620Be0fe8Db2d840E2b6145D1CF2975bcaD' as `0x${string}`,
-    value: 1285141n,
+  const nearChain = new chainAdapters.near.NEAR({
+    rpcUrl: 'https://test.rpc.fastnear.com',
+    networkId: 'testnet',
+    contract,
   })
 
-  const signature = await contract.sign({
+  const derivationPath = 'near-1'
+
+  const { address, publicKey } = await nearChain.deriveAddressAndPublicKey(accountId, derivationPath)
+  console.log('Derived account:', address)
+
+  const { balance, decimals } = await nearChain.getBalance(address)
+  console.log(`Balance: ${balance} (decimals: ${decimals})`)
+
+  const { transaction, hashesToSign } = await nearChain.prepareTransactionForSigning({
+    from: address,
+    to: 'receiver.testnet',
+    amount: 10n ** 22n,
+    publicKey,
+  })
+
+  const signatures = await contract.sign({
     payloads: hashesToSign,
     path: derivationPath,
-    keyType: 'Ecdsa',
+    keyType: 'Eddsa',
     signerAccount: {
       accountId,
       signAndSendTransactions: async ({ transactions: walletSelectorTransactions }) => {
@@ -59,14 +68,20 @@ async function main() {
           const recentBlockHash = baseDecode(accessKey.block_hash)
           const nextNonce = BigInt((accessKey.nonce ?? 0) + 1)
 
-          const actions: Action[] = tx.actions.map((a: any) => new Action({
-            functionCall: new NearFunctionCall({
-              methodName: a.params.methodName,
-              args: Buffer.from(JSON.stringify(a.params.args)),
-              gas: BigInt(a.params.gas),
-              deposit: BigInt(a.params.deposit),
-            }),
-          }))
+          const actions: NearAction[] = tx.actions.map((a: any) => {
+            if (a.type !== 'FunctionCall') throw new Error('Unsupported action in example')
+            const gas = BigInt(a.params.gas)
+            const deposit = BigInt(a.params.deposit)
+            const argsBytes = Buffer.from(JSON.stringify(a.params.args))
+            return new NearAction({
+              functionCall: new NearFunctionCall({
+                methodName: a.params.methodName,
+                args: argsBytes,
+                gas,
+                deposit,
+              }),
+            })
+          })
 
           const nearTx = new NearTransaction({
             signerId: accountId,
@@ -95,9 +110,17 @@ async function main() {
     },
   })
 
-  const signedTx = evmChain.finalizeTransactionSigning({ transaction, rsvSignatures: signature })
-  const { hash: txHash } = await evmChain.broadcastTx(signedTx)
-  console.log(`${sepolia.blockExplorers.default.url}/tx/${txHash}`)
+  if (signatures.length === 0) throw new Error('No signatures returned from MPC contract')
+
+  const signedBase64 = nearChain.finalizeTransactionSigning({ transaction, rsvSignatures: signatures[0] as any })
+
+  const { hash } = await nearChain.broadcastTx(signedBase64)
+  console.log(`Sent: https://testnet.nearblocks.io/txns/${hash}`)
 }
 
-main().catch(console.error) 
+main().catch((e) => {
+  console.error(e)
+  process.exit(1)
+})
+
+

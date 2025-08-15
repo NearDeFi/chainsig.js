@@ -1,23 +1,12 @@
 import { InMemoryKeyStore } from '@near-js/keystores'
-import type { Action as TransactionAction } from '@near-js/transactions'
-import type { TxExecutionStatus } from '@near-js/types'
-import type {
-  FinalExecutionOutcome,
-  NetworkId,
-} from '@near-wallet-selector/core'
-import {
-  transactions,
-  utils as nearUtils,
-  connect,
-  type KeyPair,
-} from 'near-api-js'
+import { JsonRpcProvider } from '@near-js/providers'
+import { Transaction as NearTransaction, SignedTransaction as NearSignedTransaction, encodeTransaction as nearEncodeTransaction, Signature as NearSignature, Action as NearAction, FunctionCall as NearFunctionCall } from '@near-js/transactions'
+import type { FinalExecutionOutcome, NetworkId } from '@near-wallet-selector/core'
+import { KeyPair } from '@near-js/crypto'
+import { baseDecode } from '@near-js/utils'
 import { withRetry } from 'viem'
 
-import {
-  type RSVSignature,
-  type MPCSignature,
-  type Ed25519Signature,
-} from '@types'
+import { type RSVSignature, type MPCSignature, type Ed25519Signature } from '@types'
 import { cryptography } from '@utils'
 
 export const responseToMpcSignature = ({
@@ -25,11 +14,7 @@ export const responseToMpcSignature = ({
 }: {
   signature: MPCSignature
 }): RSVSignature | Ed25519Signature | undefined => {
-  if (
-    'scheme' in signature &&
-    signature.scheme === 'Ed25519' &&
-    'signature' in signature
-  ) {
+  if ('scheme' in signature && signature.scheme === 'Ed25519' && 'signature' in signature) {
     return signature as Ed25519Signature
   }
   if (signature) {
@@ -40,7 +25,7 @@ export const responseToMpcSignature = ({
 }
 
 export interface SendTransactionOptions {
-  until: TxExecutionStatus
+  until: any
   retryCount: number
   delay: number
   nodeUrl: string
@@ -56,104 +41,68 @@ export const sendTransactionUntil = async ({
   options = {
     until: 'EXECUTED_OPTIMISTIC',
     retryCount: 3,
-    delay: 5000, // Near RPC timeout
-    nodeUrl:
-      networkId === 'testnet'
-        ? 'https://test.rpc.fastnear.com'
-        : 'https://free.rpc.fastnear.com',
+    delay: 5000,
+    nodeUrl: networkId === 'testnet' ? 'https://test.rpc.fastnear.com' : 'https://free.rpc.fastnear.com',
   },
 }: {
   accountId: string
   keypair: KeyPair
   networkId: NetworkId
   receiverId: string
-  actions: TransactionAction[]
+  actions: NearAction[]
   nonce?: number
   options?: SendTransactionOptions
 }): Promise<FinalExecutionOutcome> => {
   const keyStore = new InMemoryKeyStore()
   await keyStore.setKey(networkId, accountId, keypair)
 
-  const near = await connect({
-    networkId,
-    keyStore,
-    nodeUrl: options.nodeUrl,
-  })
+  const provider = new JsonRpcProvider({ url: options.nodeUrl })
 
-  const { signer } = near.connection
-  const publicKey = await signer.getPublicKey(
-    accountId,
-    near.connection.networkId
-  )
+  // Fetch current access key to get nonce and block hash
+  const publicKey = keypair.getPublicKey()
 
-  const accessKey = (await near.connection.provider.query(
-    `access_key/${accountId}/${publicKey.toString()}`,
-    ''
-  )) as unknown as {
+  const accessKey = (await provider.query(`access_key/${accountId}/${publicKey.toString()}`, '')) as unknown as {
     block_hash: string
     block_height: number
     nonce: number
     permission: string
   }
 
-  const recentBlockHash = nearUtils.serialize.base_decode(accessKey.block_hash)
+  const recentBlockHash = baseDecode(accessKey.block_hash)
 
-  const tx = transactions.createTransaction(
-    accountId,
+  const tx = new NearTransaction({
+    signerId: accountId,
     publicKey,
+    nonce: BigInt(nonce ?? accessKey.nonce + 1),
     receiverId,
-    nonce ?? ++accessKey.nonce,
     actions,
-    recentBlockHash
-  )
+    blockHash: recentBlockHash,
+  })
 
-  const serializedTx = nearUtils.serialize.serialize(
-    transactions.SCHEMA.Transaction,
-    tx
-  )
+  const serializedTx = nearEncodeTransaction(tx)
 
-  const nearTransactionSignature = await signer.signMessage(
-    serializedTx,
-    accountId,
-    near.connection.networkId
-  )
+  // Sign using raw keypair (same as near-api-js signer)
+  const signature = keypair.sign(serializedTx)
 
-  const signedTransaction = new transactions.SignedTransaction({
+  const signedTransaction = new NearSignedTransaction({
     transaction: tx,
-    signature: new transactions.Signature({
-      keyType: tx.publicKey.keyType,
-      data: nearTransactionSignature.signature,
+    signature: new NearSignature({
+      keyType: publicKey.keyType,
+      data: signature.signature,
     }),
   })
 
-  const { transaction } = await near.connection.provider.sendTransactionUntil(
-    signedTransaction,
-    'INCLUDED_FINAL'
-  )
-
-  const txHash = transaction.hash as string | undefined
-
-  if (!txHash) {
-    throw new Error('No transaction hash found')
-  }
+  // Submit and wait by polling
+  const res = await provider.sendTransaction(signedTransaction)
+  const txHash = (res as any).transaction.hash as string | undefined
+  if (!txHash) throw new Error('No transaction hash found')
 
   return await withRetry(
     async () => {
-      const txOutcome = await near.connection.provider.txStatus(
-        txHash,
-        accountId,
-        options.until
-      )
-
-      if (txOutcome) {
-        return txOutcome
-      }
-
+      const txOutcome = await provider.txStatus(txHash, accountId, options.until)
+      if (txOutcome) return txOutcome as FinalExecutionOutcome
       throw new Error('Transaction not found')
     },
-    {
-      retryCount: options.retryCount,
-      delay: options.delay,
-    }
+    { retryCount: options.retryCount, delay: options.delay }
   )
 }
