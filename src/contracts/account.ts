@@ -26,24 +26,14 @@ export const getNearAccount = async ({
   const keyStore = new InMemoryKeyStore()
   await keyStore.setKey(networkId, accountId, keypair)
 
-  // Get the RPC URL for the network
   const rpcUrl = {
     testnet: 'https://rpc.testnet.near.org',
     mainnet: 'https://rpc.mainnet.near.org',
   }[networkId]
 
-  if (!rpcUrl) {
-    throw new Error(`Unsupported network: ${networkId}`)
-  }
+  if (!rpcUrl) throw new Error(`Unsupported network: ${networkId}`)
 
-  // Create provider using new v2.0.0+ API
-  const provider = new JsonRpcProvider({
-    url: rpcUrl,
-  })
-
-  // Create signer using new v2.0.0+ API
+  const provider = new JsonRpcProvider({ url: rpcUrl })
   const signer = new KeyPairSigner(keypair)
-
-  // Use Account constructor (accountId, provider, signer)
   return new Account(accountId, provider as Provider, signer)
 }

@@ -7,3 +7,7 @@ docs/
 .vscode/
 .DS_Store
 package-lock.json
+
+# Yarn PnP
+.pnp.cjs
+.pnp.loader.mjs

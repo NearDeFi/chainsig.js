@@ -1,40 +1,26 @@
 import { InMemoryKeyStore } from '@near-js/keystores'
-import { KeyPair } from '@near-js/crypto'
-import { connect, Near } from 'near-api-js'
-import { getTransactionLastResult } from '@near-js/utils'
-import { Action } from '@near-js/transactions'
+import { KeyPair, type KeyPairString } from '@near-js/crypto'
+import { getTransactionLastResult, baseDecode } from '@near-js/utils'
+import { Action, Transaction as NearTransaction, SignedTransaction as NearSignedTransaction, Signature as NearSignature, FunctionCall as NearFunctionCall, encodeTransaction as nearEncodeTransaction } from '@near-js/transactions'
+import { JsonRpcProvider } from '@near-js/providers'
+import { createHash } from 'node:crypto'
 import { contracts, chainAdapters } from 'chainsig.js'
-import { createPublicClient, http } from 'viem'
-import { sepolia } from 'viem/chains'
-
 
 import { Connection as SolanaConnection } from '@solana/web3.js'
 
 import dotenv from 'dotenv'
-import { KeyPairString } from '@near-js/crypto'
 
 async function main() {
-  // Load environment variables
-  dotenv.config({ path: '.env' }) // Path relative to the working directory
+  dotenv.config({ path: '.env' })
 
-  // Create an account object
   const accountId = process.env.ACCOUNT_ID!
-  // Create a signer from a private key string
   const privateKey = process.env.PRIVATE_KEY as KeyPairString
-  const keyPair = KeyPair.fromString(privateKey) // ed25519:5Fg2...
+  const keyPair = KeyPair.fromString(privateKey)
 
-  // Create a keystore and add the key
   const keyStore = new InMemoryKeyStore()
   await keyStore.setKey('testnet', accountId, keyPair)
 
-  // Create a connection to testnet
-  const near = await connect({
-    networkId: 'testnet',
-    keyStore: keyStore as any,
-    nodeUrl: 'https://test.rpc.fastnear.com',
-  })
-
-  const account = await near.account(accountId)
+  const provider = new JsonRpcProvider({ url: 'https://test.rpc.fastnear.com' })
 
   const contract = new contracts.ChainSignatureContract({
     networkId: 'testnet',
@@ -42,79 +28,76 @@ async function main() {
   })
 
   const connection = new SolanaConnection('https://api.devnet.solana.com')
-
   const derivationPath = 'any_string'
 
-  const solChain = new chainAdapters.solana.Solana({
-    solanaConnection: connection,
-    contract: contract,
-  })
+  const solChain = new chainAdapters.solana.Solana({ solanaConnection: connection, contract })
 
-  // Derive address and public key
-  const { address, publicKey } = await solChain.deriveAddressAndPublicKey(
-    accountId,
-    derivationPath
-  )
-
+  const { address } = await solChain.deriveAddressAndPublicKey(accountId, derivationPath)
   console.log('address', address)
 
-  // Check balance
-  const { balance, decimals } = await solChain.getBalance(address)
-
+  const { balance } = await solChain.getBalance(address)
   console.log('balance', balance)
 
-  // Create and sign transaction
-  const {
-    transaction: { transaction },
-  } = await solChain.prepareTransactionForSigning({
+  const { transaction: { transaction } } = await solChain.prepareTransactionForSigning({
     from: address,
     to: '7CmF6R7kv77twtfRfwgXMrArmqLZ7M6tXbJa9SAUnviH',
     amount: 1285141n,
   })
 
-  // Sign with MPC
   const signatures = await contract.sign({
     payloads: [transaction.serializeMessage()],
     path: derivationPath,
     keyType: 'Eddsa',
     signerAccount: {
-      accountId: account.accountId,
-      signAndSendTransactions: async ({
-        transactions: walletSelectorTransactions,
-      }) => {
-        const transactions = walletSelectorTransactions.map((tx) => {
-          return {
+      accountId,
+      signAndSendTransactions: async ({ transactions: walletSelectorTransactions }) => {
+        const results: any[] = []
+        const pubKey = keyPair.getPublicKey()
+        for (const tx of walletSelectorTransactions) {
+          const accessKey = (await provider.query(`access_key/${accountId}/${pubKey.toString()}`, '')) as any
+          const recentBlockHash = baseDecode(accessKey.block_hash)
+          const nextNonce = BigInt((accessKey.nonce ?? 0) + 1)
+
+          const actions: Action[] = tx.actions.map((a: any) => new Action({
+            functionCall: new NearFunctionCall({
+              methodName: a.params.methodName,
+              args: Buffer.from(JSON.stringify(a.params.args)),
+              gas: BigInt(a.params.gas),
+              deposit: BigInt(a.params.deposit),
+            }),
+          }))
+
+          const nearTx = new NearTransaction({
+            signerId: accountId,
+            publicKey: pubKey,
+            nonce: nextNonce,
             receiverId: tx.receiverId,
-            actions: tx.actions,
-          } satisfies { receiverId: string; actions: Action[] }
-        })
+            actions,
+            blockHash: recentBlockHash,
+          })
 
-        const txs: any[] = []
-        for (const transaction of transactions) {
-          const tx = await account.signAndSendTransaction(transaction)
-          txs.push(tx)
+          const encoded = nearEncodeTransaction(nearTx)
+          const digest = createHash('sha256').update(encoded).digest()
+          const sig = keyPair.sign(digest)
+          const signedTx = new NearSignedTransaction({
+            transaction: nearTx,
+            signature: new NearSignature({ keyType: pubKey.keyType, data: sig.signature }),
+          })
+
+          const sent = await provider.sendTransaction(signedTx)
+          const txHash = (sent as any).transaction.hash
+          const outcome = await provider.txStatus(txHash, accountId, 'FINAL')
+          results.push(getTransactionLastResult(outcome as any))
         }
-
-        console.dir(txs, { depth: Infinity })
-
-        return txs.map((tx) => getTransactionLastResult(tx))
+        return results
       },
     },
   })
 
-  if (signatures.length === 0) throw new Error(`No signatures`);
+  if (signatures.length === 0) throw new Error(`No signatures`)
 
-  // Add signature
-  const signedTx = solChain.finalizeTransactionSigning({
-    transaction,
-    rsvSignatures: signatures[0]! as any,
-    senderAddress: address,
-  })
-
-  // Broadcast transaction
+  const signedTx = solChain.finalizeTransactionSigning({ transaction, rsvSignatures: signatures[0]! as any, senderAddress: address })
   const { hash: txHash } = await solChain.broadcastTx(signedTx)
-
-  // Print link to transaction on Solana Explorer
   console.log(`https://explorer.solana.com/tx/${txHash}?cluster=devnet`)
 }
 

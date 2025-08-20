@@ -1,4 +1,4 @@
-import { createHash } from 'crypto'
+import { createHash } from 'node:crypto'
 
 import { encodeAccountID } from 'ripple-address-codec'
 import { encode as encodeTx } from 'ripple-binary-codec'

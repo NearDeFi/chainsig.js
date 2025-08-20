@@ -77,13 +77,11 @@ const signature = await contract.sign({
   path: derivationPath,
   keyType: 'Eddsa',
   signerAccount: {
-    accountId: account.accountId,
-    signAndSendTransactions: async ({
-      transactions: walletSelectorTransactions,
-    }) => {
-      const results = []
+    accountId,
+    signAndSendTransactions: async ({ transactions }) => {
+      const results = [] as any[]
       
-      for (const tx of walletSelectorTransactions) {
+      for (const tx of transactions) {
         const actions = tx.actions.map((a: any) => createAction(a))
         
         const result = await account.signAndSendTransaction({
@@ -92,7 +90,7 @@ const signature = await contract.sign({
         })
         
         // @ts-ignore - Type mismatch between @near-js package versions
-        results.push(getTransactionLastResult(result))
+        results.push(getTransactionLastResult(result as any))
       }
       
       return results

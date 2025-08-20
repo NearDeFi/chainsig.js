@@ -51,6 +51,12 @@ Examples for sending transfers with chainsig.js via near-api-js/near-js can be f
 
 Full typedocs for the library can be found [here](https://neardefi.github.io/chainsig.js/).
 
+### NEAR adapter notes
+
+- NEAR signatures: pass an Ed25519 signature object to `finalizeTransactionSigning` (not an RSV array). The object must contain the raw Ed25519 signature bytes.
+- Derived accounts: if the derived account does not exist, the adapter throws a descriptive error. You can create and fund the account programmatically using `chainAdapters.near.utils.ensureDerivedAccountExists`.
+- Providers and SDK: the library uses `@near-js/*` v2. Do not mix `near-api-js` types with these helpers. Use `@near-js/crypto` for `KeyPair` and `@near-js/transactions` for actions and transactions.
+
 ## Using the Library
 
 Because of underlying dependencies, this library is a Commonjs project. You may need to configure your projects to use this library. 

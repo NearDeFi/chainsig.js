@@ -1,119 +1,102 @@
 import { InMemoryKeyStore } from '@near-js/keystores'
-import { KeyPair } from '@near-js/crypto'
-import { connect } from 'near-api-js'
-import { getTransactionLastResult } from '@near-js/utils'
-import { Action } from '@near-js/transactions'
+import { KeyPair, type KeyPairString } from '@near-js/crypto'
+import { JsonRpcProvider } from '@near-js/providers'
+import { getTransactionLastResult, baseDecode } from '@near-js/utils'
+import { Action, Transaction as NearTransaction, SignedTransaction as NearSignedTransaction, Signature as NearSignature, FunctionCall as NearFunctionCall, encodeTransaction as nearEncodeTransaction } from '@near-js/transactions'
+import { createHash } from 'node:crypto'
 import { contracts, chainAdapters } from 'chainsig.js'
 import { createPublicClient, http } from 'viem'
 import { sepolia } from 'viem/chains'
 
-
 import dotenv from 'dotenv'
-import { KeyPairString } from '@near-js/crypto'
 
 async function main() {
-  // Load environment variables
-  dotenv.config({ path: '.env' }) // Path relative to the working directory
+  dotenv.config({ path: '.env' })
 
-  // Create an account object
   const accountId = process.env.ACCOUNT_ID!
-  // Create a signer from a private key string
   const privateKey = process.env.PRIVATE_KEY as KeyPairString
-  const keyPair = KeyPair.fromString(privateKey) // ed25519:5Fg2...
+  const keyPair = KeyPair.fromString(privateKey)
 
-  // Create a keystore and add the key
   const keyStore = new InMemoryKeyStore()
-  await (keyStore as any).setKey('testnet', accountId, keyPair)
+  await keyStore.setKey('testnet', accountId, keyPair)
 
-  // Create a connection to testnet
-  const near = await connect({
-    networkId: 'testnet',
-    keyStore: keyStore as any,
-    nodeUrl: 'https://test.rpc.fastnear.com',
-    
-  })
-
-  const account = await near.account(accountId)
+  const provider = new JsonRpcProvider({ url: 'https://test.rpc.fastnear.com' })
 
   const contract = new contracts.ChainSignatureContract({
     networkId: 'testnet',
     contractId: 'v1.signer-prod.testnet',
   })
-  
 
-  const publicClient = createPublicClient({
-    chain: sepolia,
-    transport: http(),
-  })
+  const publicClient = createPublicClient({ chain: sepolia, transport: http() })
 
   const derivationPath = 'any_string'
 
-  const evmChain = new chainAdapters.evm.EVM({
-    publicClient: publicClient as any,
-    contract,
-  })
+  const evmChain = new chainAdapters.evm.EVM({ publicClient: publicClient as any, contract })
 
-  // Derive address and public key
-  const { address, publicKey } = await evmChain.deriveAddressAndPublicKey(
-    accountId,
-    derivationPath
-  )
-
+  const { address } = await evmChain.deriveAddressAndPublicKey(accountId, derivationPath)
   console.log('address', address)
 
-  // Check balance
-  const { balance, decimals } = await evmChain.getBalance(address)
-
+  const { balance } = await evmChain.getBalance(address)
   console.log('balance', balance)
 
-  // Create and sign transaction
-  const { transaction, hashesToSign } =
-    await evmChain.prepareTransactionForSigning({
-      from: address as `0x${string}`,
-      to: '0x427F9620Be0fe8Db2d840E2b6145D1CF2975bcaD' as `0x${string}`,
-      value: 1285141n,
-    })
+  const { transaction, hashesToSign } = await evmChain.prepareTransactionForSigning({
+    from: address as `0x${string}`,
+    to: '0x427F9620Be0fe8Db2d840E2b6145D1CF2975bcaD' as `0x${string}`,
+    value: 1285141n,
+  })
 
-  // Sign with MPC
   const signature = await contract.sign({
     payloads: hashesToSign,
     path: derivationPath,
     keyType: 'Ecdsa',
     signerAccount: {
-      accountId: account.accountId,
-      signAndSendTransactions: async ({
-        transactions: walletSelectorTransactions,
-      }) => {
-        const transactions = walletSelectorTransactions.map((tx) => {
-          return {
+      accountId,
+      signAndSendTransactions: async ({ transactions: walletSelectorTransactions }) => {
+        const results: any[] = []
+        const pubKey = keyPair.getPublicKey()
+        for (const tx of walletSelectorTransactions) {
+          const accessKey = (await provider.query(`access_key/${accountId}/${pubKey.toString()}`, '')) as any
+          const recentBlockHash = baseDecode(accessKey.block_hash)
+          const nextNonce = BigInt((accessKey.nonce ?? 0) + 1)
+
+          const actions: Action[] = tx.actions.map((a: any) => new Action({
+            functionCall: new NearFunctionCall({
+              methodName: a.params.methodName,
+              args: Buffer.from(JSON.stringify(a.params.args)),
+              gas: BigInt(a.params.gas),
+              deposit: BigInt(a.params.deposit),
+            }),
+          }))
+
+          const nearTx = new NearTransaction({
+            signerId: accountId,
+            publicKey: pubKey,
+            nonce: nextNonce,
             receiverId: tx.receiverId,
-            actions: tx.actions,
-          } satisfies { receiverId: string; actions: Action[] }
-        })
+            actions,
+            blockHash: recentBlockHash,
+          })
 
-        const txs: any[] = []
-        for (const transaction of transactions) {
-          const tx = await account.signAndSendTransaction(transaction)
-          txs.push(tx)
+          const encoded = nearEncodeTransaction(nearTx)
+          const digest = createHash('sha256').update(encoded).digest()
+          const sig = keyPair.sign(digest)
+          const signedTx = new NearSignedTransaction({
+            transaction: nearTx,
+            signature: new NearSignature({ keyType: pubKey.keyType, data: sig.signature }),
+          })
+
+          const sent = await provider.sendTransaction(signedTx)
+          const txHash = (sent as any).transaction.hash
+          const outcome = await provider.txStatus(txHash, accountId, 'FINAL')
+          results.push(getTransactionLastResult(outcome as any))
         }
-
-        return txs.map((tx) => {
-          return (getTransactionLastResult as any)(tx)
-        })
+        return results
       },
     },
   })
 
-  // Add signature
-  const signedTx = evmChain.finalizeTransactionSigning({
-    transaction,
-    rsvSignatures: signature,
-  })
-
-  // Broadcast transaction
+  const signedTx = evmChain.finalizeTransactionSigning({ transaction, rsvSignatures: signature })
   const { hash: txHash } = await evmChain.broadcastTx(signedTx)
-
-  // Print link to transaction on Sepolia Explorer
   console.log(`${sepolia.blockExplorers.default.url}/tx/${txHash}`)
 }
 

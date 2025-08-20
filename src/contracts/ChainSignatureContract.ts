@@ -4,7 +4,7 @@ import {
   najToUncompressedPubKeySEC1,
   uint8ArrayToHex,
 } from '@utils/cryptography'
-import { providers } from 'near-api-js'
+import { JsonRpcProvider } from '@near-js/providers'
 
 import {
   type RSVSignature,
@@ -40,7 +40,7 @@ export interface SignArgs<T = unknown> {
 export class ChainSignatureContract {
   private readonly contractId: string
   private readonly networkId: NearNetworkIds
-  private readonly provider: providers.FailoverRpcProvider
+  private readonly provider: JsonRpcProvider
 
   constructor({
     contractId,
@@ -54,14 +54,12 @@ export class ChainSignatureContract {
     this.contractId = contractId
     this.networkId = networkId
 
-    const rpcProviderUrls =
+    const rpcProviderUrl =
       fallbackRpcUrls && fallbackRpcUrls.length > 0
-        ? fallbackRpcUrls
-        : [`https://rpc.${this.networkId}.near.org`]
+        ? fallbackRpcUrls[0]
+        : `https://rpc.${this.networkId}.near.org`
 
-    this.provider = new providers.FailoverRpcProvider(
-      rpcProviderUrls.map((url) => new providers.JsonRpcProvider({ url }))
-    )
+    this.provider = new JsonRpcProvider({ url: rpcProviderUrl })
   }
 
   private async viewFunction({
