@@ -1,5 +1,5 @@
 import { getTransactionLastResult } from '@near-js/utils'
-import { KeyPair } from 'near-api-js'
+import { KeyPair, type KeyPairString } from '@near-js/crypto'
 import dotenv from 'dotenv'
 import { createAction } from '@near-wallet-selector/wallet-utils'
 
@@ -9,7 +9,7 @@ async function main() {
   dotenv.config({ path: '.env' })
 
   const accountId = process.env.ACCOUNT_ID!
-  const privateKey = process.env.PRIVATE_KEY as string
+  const privateKey = process.env.PRIVATE_KEY as KeyPairString
   if (!accountId || !privateKey) throw new Error('ACCOUNT_ID and PRIVATE KEY are required')
 
   const keyPair = KeyPair.fromString(privateKey)
@@ -31,15 +31,16 @@ async function main() {
   console.log('Derived account:', address)
 
   // Optional: auto-create & fund derived account with MPC full-access key.
-  // Enable by uncommenting below and set desired initial deposit.
-  await chainAdapters.near.utils.ensureDerivedAccountExists({
-    provider: new (await import('@near-js/providers')).JsonRpcProvider({ url: 'https://test.rpc.fastnear.com' }),
-    controllerAccountId: accountId,
-    controllerKeyPair: keyPair,
-    derivedAccountId: address,
-    mpcPublicKey: publicKey,
-    initialDepositYocto: 1_000_000_000_000_000_000_000_000n, // 1 NEAR
-  })
+  // To enable, uncomment the block below and ensure your project resolves a single copy of @near-js/* v2.
+  // const { JsonRpcProvider } = await import('@near-js/providers')
+  // await chainAdapters.near.utils.ensureDerivedAccountExists({
+  //   provider: new JsonRpcProvider({ url: 'https://test.rpc.fastnear.com' }),
+  //   controllerAccountId: accountId,
+  //   controllerKeyPair: keyPair,
+  //   derivedAccountId: address,
+  //   mpcPublicKey: publicKey,
+  //   initialDepositYocto: 1_000_000_000_000_000_000_000_000n, // 1 NEAR
+  // })
 
   const { balance, decimals } = await nearChain.getBalance(address)
   console.log(`Balance: ${balance} (decimals: ${decimals})`)

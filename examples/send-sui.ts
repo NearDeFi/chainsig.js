@@ -1,5 +1,5 @@
 import { Account } from '@near-js/accounts'
-import { contracts, chainAdapters } from '../src/index'
+import { contracts, chainAdapters } from 'chainsig.js'
 import { KeyPairString, KeyPair } from '@near-js/crypto'
 import { JsonRpcProvider } from '@near-js/providers'
 import { KeyPairSigner } from '@near-js/signers'

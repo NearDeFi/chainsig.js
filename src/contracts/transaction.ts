@@ -2,9 +2,19 @@ import { InMemoryKeyStore } from '@near-js/keystores'
 import { JsonRpcProvider } from '@near-js/providers'
 import { Transaction as NearTransaction, SignedTransaction as NearSignedTransaction, encodeTransaction as nearEncodeTransaction, Signature as NearSignature, Action as NearAction, FunctionCall as NearFunctionCall } from '@near-js/transactions'
 import type { FinalExecutionOutcome, NetworkId } from '@near-wallet-selector/core'
+import type { TxExecutionStatus } from '@near-js/types'
 import { KeyPair } from '@near-js/crypto'
 import { baseDecode } from '@near-js/utils'
-import { createHash } from 'node:crypto'
+// Cross-runtime SHA-256 (browser & Node)
+const sha256Bytes = async (data: Uint8Array): Promise<Uint8Array> => {
+  const cryptoAny = (globalThis as any).crypto
+  if (cryptoAny && cryptoAny.subtle) {
+    const digest = await cryptoAny.subtle.digest('SHA-256', data)
+    return new Uint8Array(digest)
+  }
+  const { createHash } = await import('node:crypto')
+  return new Uint8Array(createHash('sha256').update(data).digest())
+}
 import { withRetry } from 'viem'
 
 import { type RSVSignature, type MPCSignature, type Ed25519Signature } from '@types'
@@ -26,7 +36,7 @@ export const responseToMpcSignature = ({
 }
 
 export interface SendTransactionOptions {
-  until: any
+  until: TxExecutionStatus
   retryCount: number
   delay: number
   nodeUrl: string
@@ -40,7 +50,7 @@ export const sendTransactionUntil = async ({
   actions,
   nonce,
   options = {
-    until: 'EXECUTED_OPTIMISTIC',
+    until: 'EXECUTED_OPTIMISTIC' as TxExecutionStatus,
     retryCount: 3,
     delay: 5000,
     nodeUrl: networkId === 'testnet' ? 'https://test.rpc.fastnear.com' : 'https://free.rpc.fastnear.com',
@@ -83,7 +93,7 @@ export const sendTransactionUntil = async ({
   const serializedTx = nearEncodeTransaction(tx)
 
   // NEAR signs the SHA-256 hash of the serialized transaction
-  const digest = createHash('sha256').update(serializedTx).digest()
+  const digest = await sha256Bytes(serializedTx)
   const signature = keypair.sign(digest)
 
   const signedTransaction = new NearSignedTransaction({

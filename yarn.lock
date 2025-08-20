@@ -8420,7 +8420,7 @@ is-typedarray@^1.0.0:
   integrity sha512-cyA56iCMHAh5CdzjJIa4aohJyeO1YbwLi3Jc35MmRU6poroFjIGZzUzupGiRPOjgHg9TLu43xbpwXk523fMxKA==
 
 is-unicode-supported@*:
-  version "1.3.0"
+  version "2.1.0"
 
 is-unicode-supported@^0.1.0:
   version "0.1.0"

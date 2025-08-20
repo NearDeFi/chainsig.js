@@ -10,7 +10,17 @@ import {
 import { PublicKey as NearPublicKey } from '@near-js/crypto'
 import { baseDecode } from '@near-js/utils'
 import { JsonRpcProvider } from '@near-js/providers'
-import { createHash } from 'node:crypto'
+
+// Cross-runtime SHA-256 (browser & Node)
+const sha256Bytes = async (data: Uint8Array): Promise<Uint8Array> => {
+  const cryptoAny = (globalThis as any).crypto
+  if (cryptoAny && cryptoAny.subtle) {
+    const digest = await cryptoAny.subtle.digest('SHA-256', data)
+    return new Uint8Array(digest)
+  }
+  const { createHash } = await import('node:crypto')
+  return new Uint8Array(createHash('sha256').update(data).digest())
+}
 
 import type { ChainSignatureContract } from '@contracts/ChainSignatureContract'
 import type { HashToSign, Signature, RSVSignature } from '@types'
@@ -89,7 +99,7 @@ export class NEAR extends ChainAdapter<NearTransactionRequest, NearUnsignedTrans
     const actions = [new NearAction({ transfer: new NearTransfer({ deposit: BigInt(amount) }) })]
     const tx = nearCreateTransaction(from, txPublicKey, to, nextNonce, actions, recentBlockHash)
     const serialized = nearEncodeTransaction(tx)
-    const hash = createHash('sha256').update(serialized).digest()
+    const hash = await sha256Bytes(serialized)
     return { transaction: { transaction: tx }, hashesToSign: [Array.from(hash)] }
   }
 
@@ -99,6 +109,7 @@ export class NEAR extends ChainAdapter<NearTransactionRequest, NearUnsignedTrans
     const txObj = 'transaction' in (transaction as any) ? (transaction as NearUnsignedTransaction).transaction : (transaction as any)
     const signedTransaction = new NearSignedTransaction({ transaction: txObj, signature: new NearSignature({ keyType: txObj.publicKey.keyType, data: signatureBytes }) })
     const encoded = signedTransaction.encode()
+    // Use browser-safe base64 from Uint8Array
     return Buffer.from(encoded).toString('base64')
   }
 
