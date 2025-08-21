@@ -83,11 +83,9 @@ const signature = await contract.sign({
       const results = []
       
       for (const tx of walletSelectorTransactions) {
-        const actions = tx.actions
-        
         const result = await account.signAndSendTransaction({
           receiverId: tx.receiverId,
-          actions,
+          actions: tx.actions,
         })
         
         // @ts-ignore - Type mismatch between @near-js package versions
