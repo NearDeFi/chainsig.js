@@ -1,10 +1,12 @@
-import { type CodeResult } from '@near-js/types'
+import { actionCreators } from '@near-js/transactions'
+import { type FinalExecutionOutcome, type CodeResult } from '@near-js/types'
 import { type Transaction } from '@near-wallet-selector/core'
 import {
   najToUncompressedPubKeySEC1,
   uint8ArrayToHex,
 } from '@utils/cryptography'
 import { providers } from 'near-api-js'
+import { getTransactionLastResult } from 'near-api-js/lib/providers'
 
 import {
   type RSVSignature,
@@ -15,7 +17,7 @@ import {
 
 import { NEAR_MAX_GAS } from './constants'
 import { responseToMpcSignature } from './transaction'
-import { type NearNetworkIds } from './types'
+import type { NearNetworkIds } from './types'
 
 interface ViewMethodParams {
   contractId: string
@@ -23,7 +25,7 @@ interface ViewMethodParams {
   args?: Record<string, unknown>
 }
 
-export type HashToSign = number[] | Uint8Array<ArrayBufferLike>
+export type HashToSign = number[] | Uint8Array
 
 export interface SignArgs<T = unknown> {
   payloads: HashToSign[]
@@ -94,29 +96,30 @@ export class ChainSignatureContract {
       signerId: signerAccount.accountId,
       receiverId: this.contractId,
       actions: [
-        {
-          type: 'FunctionCall' as const,
-          params: {
-            methodName: 'sign',
-            args: {
-              request: {
-                payload_v2: { [keyType]: uint8ArrayToHex(payload) },
-                path,
-                domain_id: keyType === 'Eddsa' ? 1 : 0,
-              },
+        actionCreators.functionCall(
+          'sign',
+          {
+            request: {
+              payload_v2: { [keyType]: uint8ArrayToHex(payload) },
+              path,
+              domain_id: keyType === 'Eddsa' ? 1 : 0,
             },
-            gas: NEAR_MAX_GAS.toString(),
-            deposit: '1',
           },
-        },
+          BigInt(NEAR_MAX_GAS),
+          BigInt(1)
+        ),
       ],
     }))
 
     const sentTxs = (await signerAccount.signAndSendTransactions({
-      transactions,
-    })) as MPCSignature[]
+      transactions: transactions as unknown as Transaction[],
+    })) as FinalExecutionOutcome[]
 
-    const rsvSignatures = sentTxs.map((tx) =>
+    const results = sentTxs.map((tx) =>
+      getTransactionLastResult(tx)
+    ) as MPCSignature[]
+
+    const rsvSignatures = results.map((tx) =>
       responseToMpcSignature({ signature: tx })
     )
 
