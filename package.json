@@ -102,12 +102,11 @@
     "jest-environment-node": "^29.7.0",
     "prettier": "^3.2.5",
     "ts-jest": "^29.1.0",
-    "ts-node": "^10.9.2",
     "tsup": "^8.4.0",
     "typedoc": "^0.28.7",
     "typescript": "^5.4.3",
     "vitest": "^3.0.4",
-    "vocs": "1.0.0-alpha.62"
+    "vocs": "^1.0.13"
   },
   "dependencies": {
     "@aptos-labs/ts-sdk": "^2.0.1",
@@ -118,7 +117,6 @@
     "@cosmjs/proto-signing": "^0.32.4",
     "@cosmjs/stargate": "^0.32.4",
     "@mysten/sui": "^1.30.1",
-    "@near-js/accounts": "^1.4.1",
     "@near-js/crypto": "^1.4.2",
     "@near-js/keystores": "^0.2.2",
     "@near-js/providers": "^1.0.3",
@@ -140,7 +138,7 @@
     "cosmjs-types": "^0.9.0",
     "elliptic": "^6.6.1",
     "js-sha3": "^0.9.3",
-    "near-api-js": "5.1.1",
+    "near-api-js": "^5.1.1",
     "ripple-address-codec": "^5.0.0",
     "ripple-binary-codec": "^2.3.0",
     "viem": "^2.22.14",

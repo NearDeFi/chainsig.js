@@ -11,7 +11,8 @@
     "send-sol": "tsx send-sol.ts",
     "send-apt": "tsx send-apt.ts",
     "send-sui": "tsx send-sui.ts",
-    "send-xrp": "tsx send-xrp.ts"
+    "send-xrp": "tsx send-xrp.ts",
+    "send-all": "tsx send-eth.ts && tsx send-btc.ts && tsx send-sol.ts && tsx send-apt.ts && tsx send-sui.ts && tsx send-xrp.ts"
   },
   "keywords": [],
   "author": "",
@@ -19,12 +20,12 @@
   "dependencies": {
     "@aptos-labs/ts-sdk": "^2.0.1",
     "@mysten/sui": "^1.30.5",
-    "@near-js/accounts": "^1.4.1",
-    "@near-js/crypto": "^1.4.2",
-    "@near-js/providers": "^1.0.3",
-    "@near-js/signers": "^0.1.1",
-    "@near-js/utils": "^1.1.0",
-    "@near-wallet-selector/wallet-utils": "^8.10.2",
+    "@near-js/accounts": "^2.2.4",
+    "@near-js/crypto": "^2.2.4",
+    "@near-js/providers": "^2.2.4",
+    "@near-js/signers": "^2.2.4",
+    "@near-js/utils": "^2.2.4",
+    "@near-wallet-selector/wallet-utils": "^9.0.2",
     "@noble/hashes": "^1.8.0",
     "@solana/web3.js": "^1.98.2",
     "chainsig.js": "file:../dist",

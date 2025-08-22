@@ -1,6 +1,6 @@
 # Chainsig.js
 
-A TypeScript library for handling multi-chain transactions and signatures using MPC (Multi-Party Computation).
+A TypeScript library for creating transactions for different chains and signing them with NEAR's MPC (Multi-party Computation)service.
 
 ## Overview
 
@@ -43,8 +43,19 @@ yarn add chainsig.js
 pnpm add chainsig.js
 ```
 
-## Example Repo
-https://github.com/NearDeFi/chainsig-example
+## Docs and Examples
+
+Examples for sending transfers and function calls with chainsig.js via a NEAR wallet can be found in the [near-multichain](https://github.com/near-examples/near-multichain) repo, along with in depth documentation in the [NEAR docs](https://docs.near.org/chain-abstraction/chain-signatures/implementation).
+
+Examples for sending transfers with chainsig.js via near-api-js/near-js can be found in the [examples folder](./examples/).
+
+Full typedocs for the library can be found [here](https://neardefi.github.io/chainsig.js/).
+
+## Using the Library
+
+Because of underlying dependencies, this library is a Commonjs project. You may need to configure your projects to use this library. 
+
+Here are simple examples in [TypeScript](https://github.com/GregProuty/chainsig-simple-example) and [JavaScript](https://github.com/GregProuty/chainsig-es6-example). 
 
 ## Quick Example
 

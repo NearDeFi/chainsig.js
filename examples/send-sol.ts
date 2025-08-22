@@ -6,7 +6,7 @@ import { Action } from '@near-js/transactions'
 import { contracts, chainAdapters } from 'chainsig.js'
 import { createPublicClient, http } from 'viem'
 import { sepolia } from 'viem/chains'
-import { createAction } from '@near-wallet-selector/wallet-utils'
+
 
 import { Connection as SolanaConnection } from '@solana/web3.js'
 
@@ -85,7 +85,7 @@ async function main() {
         const transactions = walletSelectorTransactions.map((tx) => {
           return {
             receiverId: tx.receiverId,
-            actions: tx.actions.map((a) => createAction(a)),
+            actions: tx.actions,
           } satisfies { receiverId: string; actions: Action[] }
         })
 
