@@ -4,6 +4,7 @@ import { connect } from 'near-api-js'
 import { getTransactionLastResult } from '@near-js/utils'
 import { Action } from '@near-js/transactions'
 import { contracts, chainAdapters } from 'chainsig.js'
+import { createAction } from '@near-wallet-selector/wallet-utils'
 
 import dotenv from 'dotenv'
 import { KeyPairString } from '@near-js/crypto'
@@ -84,7 +85,7 @@ async function main() {
         const transactions = walletSelectorTransactions.map((tx) => {
           return {
             receiverId: tx.receiverId,
-            actions: tx.actions,
+            actions: tx.actions.map((a) => createAction(a)),
           } satisfies { receiverId: string; actions: Action[] }
         })
 
