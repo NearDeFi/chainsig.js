@@ -1,6 +1,5 @@
-import { actionCreators } from '@near-js/transactions'
+import { type Action, actionCreators } from '@near-js/transactions'
 import { type FinalExecutionOutcome, type CodeResult } from '@near-js/types'
-import { type Transaction } from '@near-wallet-selector/core'
 import {
   najToUncompressedPubKeySEC1,
   uint8ArrayToHex,
@@ -25,9 +24,15 @@ interface ViewMethodParams {
   args?: Record<string, unknown>
 }
 
+interface Transaction {
+  signerId?: string
+  receiverId: string
+  actions: Action[]
+}
+
 export type HashToSign = number[] | Uint8Array
 
-export interface SignArgs<T = unknown> {
+export interface SignArgs {
   payloads: HashToSign[]
   path: string
   keyType: 'Eddsa' | 'Ecdsa'
@@ -35,7 +40,7 @@ export interface SignArgs<T = unknown> {
     accountId: string
     signAndSendTransactions: (transactions: {
       transactions: Transaction[]
-    }) => Promise<T>
+    }) => Promise<FinalExecutionOutcome[]>
   }
 }
 
@@ -111,9 +116,9 @@ export class ChainSignatureContract {
       ],
     }))
 
-    const sentTxs = (await signerAccount.signAndSendTransactions({
-      transactions: transactions as unknown as Transaction[],
-    })) as FinalExecutionOutcome[]
+    const sentTxs = await signerAccount.signAndSendTransactions({
+      transactions,
+    })
 
     const results = sentTxs.map((tx) =>
       getTransactionLastResult(tx)
