@@ -52,7 +52,7 @@ describe('XRP Balance Tests', () => {
 
     // Create XRP instance with mocked client
     xrp = new XRP({
-      rpcUrl: 'wss://s.altnet.rippletest.net:51233',
+      rpcUrl: 'wss://testnet.xrpl-labs.com/',
       contract: mockContract,
       client: mockClient,
     })

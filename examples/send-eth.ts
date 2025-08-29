@@ -69,33 +69,7 @@ async function main(): Promise<void> {
     payloads: hashesToSign,
     path: derivationPath,
     keyType: 'Ecdsa',
-<<<<<<< HEAD
     signerAccount: account,
-=======
-    signerAccount: {
-      accountId: account.accountId,
-      signAndSendTransactions: async ({
-        transactions: walletSelectorTransactions,
-      }) => {
-        const transactions = walletSelectorTransactions.map((tx) => {
-          return {
-            receiverId: tx.receiverId,
-            actions: tx.actions.map((a) => createAction(a)),
-          } satisfies { receiverId: string; actions: Action[] }
-        })
-
-        const txs: any[] = []
-        for (const transaction of transactions) {
-          const tx = await account.signAndSendTransaction(transaction)
-          txs.push(tx)
-        }
-
-        return txs.map((tx) => {
-          return (getTransactionLastResult as any)(tx)
-        })
-      },
-    },
->>>>>>> main
   })
 
   // Add signature
