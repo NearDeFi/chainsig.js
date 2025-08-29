@@ -5,7 +5,6 @@ import { KeyPairSigner } from '@near-js/signers'
 
 import { DONT_CARE_ACCOUNT_ID } from '@contracts/constants'
 
-// Aux function
 type SetConnectionArgs =
   | {
       networkId: string
