@@ -8,7 +8,7 @@ import type { BTCTransactionRequest } from '@chain-adapters/Bitcoin/types'
 import type { CosmosTransactionRequest } from '@chain-adapters/Cosmos/types'
 import type { EVMTransactionRequest } from '@chain-adapters/EVM/types'
 import { ChainSignatureContract } from '@contracts/ChainSignatureContract'
-import * as transactions from '@contracts/signAndSend/transactions'
+import * as keypair from '@contracts/signAndSend/transactions'
 
 import { getNearAccount } from './utils'
 
@@ -73,7 +73,7 @@ describe('signAndSend keypair', () => {
       mockEVM.broadcastTx.mockResolvedValue(mockTxHash)
 
       // Execute
-      const result = await transactions.EVMTransaction(
+      const result = await keypair.EVMTransaction(
         {
           nearAuthentication: {
             networkId: 'testnet',
@@ -112,7 +112,7 @@ describe('signAndSend keypair', () => {
       )
 
       // Execute
-      const result = await transactions.EVMTransaction(
+      const result = await keypair.EVMTransaction(
         {
           nearAuthentication: {
             networkId: 'testnet',
@@ -168,7 +168,7 @@ describe('signAndSend keypair', () => {
       mockBTC.broadcastTx.mockResolvedValue(mockTxHash)
 
       // Execute
-      const result = await transactions.BTCTransaction(
+      const result = await keypair.BTCTransaction(
         {
           nearAuthentication: {
             networkId: 'testnet',
@@ -200,7 +200,7 @@ describe('signAndSend keypair', () => {
       )
 
       // Execute
-      const result = await transactions.BTCTransaction(
+      const result = await keypair.BTCTransaction(
         {
           nearAuthentication: {
             networkId: 'testnet',
@@ -266,7 +266,7 @@ describe('signAndSend keypair', () => {
       mockCosmos.broadcastTx.mockResolvedValue(mockTxHash)
 
       // Execute
-      const result = await transactions.CosmosTransaction(
+      const result = await keypair.CosmosTransaction(
         {
           nearAuthentication: {
             networkId: 'testnet',
@@ -297,7 +297,7 @@ describe('signAndSend keypair', () => {
       )
 
       // Execute
-      const result = await transactions.CosmosTransaction(
+      const result = await keypair.CosmosTransaction(
         {
           nearAuthentication: {
             networkId: 'testnet',
