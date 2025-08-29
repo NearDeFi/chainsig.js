@@ -118,7 +118,8 @@
   },
   "include": [
     "src/**/*",
-    "__tests__/**/*"
+    "__tests__/**/*",
+    "examples/**/*.ts"
   ],
   "exclude": ["node_modules", "dist"]
 }
