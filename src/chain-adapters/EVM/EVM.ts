@@ -18,7 +18,7 @@ import {
   concat,
   pad,
   isAddress,
-  SignedAuthorization,
+  type SignedAuthorization,
 } from 'viem'
 import { hashAuthorization } from 'viem/experimental'
 
@@ -69,9 +69,11 @@ export class EVM extends ChainAdapter<EVMTransactionRequest, EVMUnsignedTransact
     transaction: EVMTransactionRequest
   ): Promise<EVMUnsignedTransaction> {
     const fees = await fetchEVMFeeProperties(this.client, transaction)
-    const nonce = await this.client.getTransactionCount({
-      address: transaction.from,
-    })
+    const nonce =
+      transaction.nonce ??
+      (await this.client.getTransactionCount({
+        address: transaction.from,
+      }))
 
     const { from, ...rest } = transaction
 
@@ -87,12 +89,14 @@ export class EVM extends ChainAdapter<EVMTransactionRequest, EVMUnsignedTransact
   private async attachGasAndNonceLegacy(
     transaction: EVMTransactionRequestLegacy
   ): Promise<EVMUnsignedLegacyTransaction> {
-    const gasPrice = await this.client.getGasPrice()
-    const nonce = await this.client.getTransactionCount({
-      address: transaction.from,
-    })
+    const gasPrice = transaction.gasPrice ?? (await this.client.getGasPrice())
+    const nonce =
+      transaction.nonce ??
+      (await this.client.getTransactionCount({
+        address: transaction.from,
+      }))
 
-    const { from, ...rest } = transaction;
+    const { from, ...rest } = transaction
 
     return {
       ...rest,
@@ -104,8 +108,6 @@ export class EVM extends ChainAdapter<EVMTransactionRequest, EVMUnsignedTransact
       type: 'legacy',
     }
   }
-
-
 
   private transformRSVSignature(signature: RSVSignature): Signature {
     return {
