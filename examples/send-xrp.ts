@@ -1,41 +1,32 @@
-import { InMemoryKeyStore } from '@near-js/keystores'
-import { KeyPair } from '@near-js/crypto'
-import { connect } from 'near-api-js'
-import { getTransactionLastResult } from '@near-js/utils'
-import { Action } from '@near-js/transactions'
+import { Account } from '@near-js/accounts'
+import { KeyPair, type KeyPairString } from '@near-js/crypto'
+import { JsonRpcProvider } from '@near-js/providers'
+import { KeyPairSigner } from '@near-js/signers'
 import { contracts, chainAdapters } from 'chainsig.js'
-import { createAction } from '@near-wallet-selector/wallet-utils'
+import { config } from 'dotenv'
 
+config() // Load environment variables
 
-import dotenv from 'dotenv'
-import { KeyPairString } from '@near-js/crypto'
+async function main(): Promise<void> {
+  const accountId = process.env.ACCOUNT_ID // 'your-account.testnet'
+  const privateKey = process.env.PRIVATE_KEY as KeyPairString // ed25519:3D4YudUahN...
 
-async function main() {
-  // Load environment variables
-  dotenv.config({ path: '.env' }) // Path relative to the working directory
+  if (!accountId) throw new Error('Setup environmental variables')
 
-  // Create an account object
-  const accountId = process.env.ACCOUNT_ID!
-  // Create a signer from a private key string
-  const privateKey = process.env.PRIVATE_KEY as KeyPairString
-  const keyPair = KeyPair.fromString(privateKey) // ed25519:5Fg2...
+  const keyPair = KeyPair.fromString(privateKey)
+  const signer = new KeyPairSigner(keyPair)
 
-  // Create a keystore and add the key
-  const keyStore = new InMemoryKeyStore()
-  await keyStore.setKey('testnet', accountId, keyPair)
-
-  // Create a connection to testnet
-  const near = await connect({
-    networkId: 'testnet',
-    keyStore: keyStore as any,
-    nodeUrl: 'https://test.rpc.fastnear.com',
+  const provider = new JsonRpcProvider({
+    url: 'https://test.rpc.fastnear.com',
   })
 
-  const account = await near.account(accountId)
+  const account = new Account(accountId, provider, signer)
 
   const contract = new contracts.ChainSignatureContract({
     networkId: 'testnet',
-    contractId: 'v1.signer-prod.testnet',
+    contractId:
+      process.env.NEXT_PUBLIC_NEAR_CHAIN_SIGNATURE_CONTRACT ||
+      'v1.signer-prod.testnet',
   })
 
   const derivationPath = 'any_string'
@@ -69,7 +60,7 @@ async function main() {
       amount: '1000000', // 1 XRP in drops
       publicKey,
       destinationTag: 12345,
-      memo: 'Test transaction from chainsig.js'
+      memo: 'Test transaction from chainsig.js',
     })
 
   console.log('Transaction prepared for signing')
@@ -79,29 +70,7 @@ async function main() {
     payloads: hashesToSign,
     path: derivationPath,
     keyType: 'Ecdsa',
-    signerAccount: {
-      accountId: account.accountId,
-      signAndSendTransactions: async ({
-        transactions: walletSelectorTransactions,
-      }) => {
-        const transactions = walletSelectorTransactions.map((tx) => {
-          return {
-            receiverId: tx.receiverId,
-            actions: tx.actions.map((a) => createAction(a)),
-          } satisfies { receiverId: string; actions: Action[] }
-        })
-
-        const txs: any[] = []
-        for (const transaction of transactions) {
-          const tx = await account.signAndSendTransaction(transaction)
-          txs.push(tx)
-        }
-
-        console.dir(txs, { depth: Infinity })
-
-        return txs.map((tx) => getTransactionLastResult(tx))
-      },
-    },
+    signerAccount: account,
   })
 
   console.log('Transaction signed with MPC')
@@ -119,7 +88,9 @@ async function main() {
 
   console.log('Transaction broadcasted!')
   console.log(`Transaction hash: ${txHash}`)
-  console.log(`View on XRPL Explorer: https://testnet.xrpl.org/transactions/${txHash}`)
+  console.log(
+    `View on XRPL Explorer: https://testnet.xrpl.org/transactions/${txHash}`
+  )
 }
 
 main().catch(console.error)

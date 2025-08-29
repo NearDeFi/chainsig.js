@@ -211,7 +211,7 @@ export class XRP extends ChainAdapter<
       signingData.set(encodedBytes, signingPrefix.length)
 
       const hash = createHash('sha512').update(signingData).digest()
-      const signingHash = new Uint8Array(hash.slice(0, 32))
+      const signingHash = new Uint8Array(hash.subarray(0, 32))
 
       return {
         transaction: unsignedTx,

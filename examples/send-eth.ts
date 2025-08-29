@@ -1,45 +1,35 @@
-import { InMemoryKeyStore } from '@near-js/keystores'
-import { KeyPair } from '@near-js/crypto'
-import { connect } from 'near-api-js'
-import { getTransactionLastResult } from '@near-js/utils'
-import { Action } from '@near-js/transactions'
+import { Account } from '@near-js/accounts'
+import { KeyPair, type KeyPairString } from '@near-js/crypto'
+import { JsonRpcProvider } from '@near-js/providers'
+import { KeyPairSigner } from '@near-js/signers'
 import { contracts, chainAdapters } from 'chainsig.js'
+import { config } from 'dotenv'
 import { createPublicClient, http } from 'viem'
 import { sepolia } from 'viem/chains'
-import { createAction } from '@near-wallet-selector/wallet-utils'
 
-import dotenv from 'dotenv'
-import { KeyPairString } from '@near-js/crypto'
+config() // Load environment variables
 
-async function main() {
-  // Load environment variables
-  dotenv.config({ path: '.env' }) // Path relative to the working directory
+async function main(): Promise<void> {
+  const accountId = process.env.ACCOUNT_ID // 'your-account.testnet'
+  const privateKey = process.env.PRIVATE_KEY as KeyPairString // ed25519:3D4YudUahN...
 
-  // Create an account object
-  const accountId = process.env.ACCOUNT_ID!
-  // Create a signer from a private key string
-  const privateKey = process.env.PRIVATE_KEY as KeyPairString
-  const keyPair = KeyPair.fromString(privateKey) // ed25519:5Fg2...
+  if (!accountId) throw new Error('Setup environmental variables')
 
-  // Create a keystore and add the key
-  const keyStore = new InMemoryKeyStore()
-  await (keyStore as any).setKey('testnet', accountId, keyPair)
+  const keyPair = KeyPair.fromString(privateKey)
+  const signer = new KeyPairSigner(keyPair)
 
-  // Create a connection to testnet
-  const near = await connect({
-    networkId: 'testnet',
-    keyStore: keyStore as any,
-    nodeUrl: 'https://test.rpc.fastnear.com',
-    
+  const provider = new JsonRpcProvider({
+    url: 'https://test.rpc.fastnear.com',
   })
 
-  const account = await near.account(accountId)
+  const account = new Account(accountId, provider, signer)
 
   const contract = new contracts.ChainSignatureContract({
     networkId: 'testnet',
-    contractId: 'v1.signer-prod.testnet',
+    contractId:
+      process.env.NEXT_PUBLIC_NEAR_CHAIN_SIGNATURE_CONTRACT ||
+      'v1.signer-prod.testnet',
   })
-  
 
   const publicClient = createPublicClient({
     chain: sepolia,
@@ -54,7 +44,7 @@ async function main() {
   })
 
   // Derive address and public key
-  const { address, publicKey } = await evmChain.deriveAddressAndPublicKey(
+  const { address } = await evmChain.deriveAddressAndPublicKey(
     accountId,
     derivationPath
   )
@@ -62,7 +52,7 @@ async function main() {
   console.log('address', address)
 
   // Check balance
-  const { balance, decimals } = await evmChain.getBalance(address)
+  const { balance } = await evmChain.getBalance(address)
 
   console.log('balance', balance)
 
@@ -79,29 +69,7 @@ async function main() {
     payloads: hashesToSign,
     path: derivationPath,
     keyType: 'Ecdsa',
-    signerAccount: {
-      accountId: account.accountId,
-      signAndSendTransactions: async ({
-        transactions: walletSelectorTransactions,
-      }) => {
-        const transactions = walletSelectorTransactions.map((tx) => {
-          return {
-            receiverId: tx.receiverId,
-            actions: tx.actions.map((a) => createAction(a)),
-          } satisfies { receiverId: string; actions: Action[] }
-        })
-
-        const txs: any[] = []
-        for (const transaction of transactions) {
-          const tx = await account.signAndSendTransaction(transaction)
-          txs.push(tx)
-        }
-
-        return txs.map((tx) => {
-          return (getTransactionLastResult as any)(tx)
-        })
-      },
-    },
+    signerAccount: account,
   })
 
   // Add signature
@@ -117,4 +85,4 @@ async function main() {
   console.log(`${sepolia.blockExplorers.default.url}/tx/${txHash}`)
 }
 
-main().catch(console.error) 
+main().catch(console.error)

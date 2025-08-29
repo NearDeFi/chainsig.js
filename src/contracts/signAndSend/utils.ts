@@ -1,7 +1,6 @@
 import { Account } from '@near-js/accounts'
 import { KeyPair } from '@near-js/crypto'
-import { InMemoryKeyStore } from '@near-js/keystores'
-import { JsonRpcProvider, type Provider } from '@near-js/providers'
+import { JsonRpcProvider } from '@near-js/providers'
 import { KeyPairSigner } from '@near-js/signers'
 
 import { DONT_CARE_ACCOUNT_ID } from '@contracts/constants'
@@ -10,22 +9,19 @@ type SetConnectionArgs =
   | {
       networkId: string
       accountId: string
-      keypair: KeyPair
+      keyPair: KeyPair
     }
   | {
       networkId: string
       accountId?: never
-      keypair?: never
+      keyPair?: never
     }
 
 export const getNearAccount = async ({
   networkId,
   accountId = DONT_CARE_ACCOUNT_ID,
-  keypair = KeyPair.fromRandom('ed25519'),
+  keyPair = KeyPair.fromRandom('ed25519'),
 }: SetConnectionArgs): Promise<Account> => {
-  const keyStore = new InMemoryKeyStore()
-  await keyStore.setKey(networkId, accountId, keypair)
-
   // Get the RPC URL for the network
   const rpcUrl = {
     testnet: 'https://rpc.testnet.near.org',
@@ -42,8 +38,8 @@ export const getNearAccount = async ({
   })
 
   // Create signer using new v2.0.0+ API
-  const signer = new KeyPairSigner(keypair)
+  const signer = new KeyPairSigner(keyPair)
 
   // Use Account constructor (accountId, provider, signer)
-  return new Account(accountId, provider as Provider, signer)
+  return new Account(accountId, provider, signer)
 }

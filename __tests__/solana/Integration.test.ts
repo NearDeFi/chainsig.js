@@ -164,7 +164,7 @@ describe('Solana MPC Integration', () => {
                   keyType: 'Eddsa',
                   signerAccount: {
                     accountId: 'test-account',
-                    signAndSendTransactions: async () => ({}),
+                    signAndSendTransactions: async () => [],
                   },
                 })
             )
