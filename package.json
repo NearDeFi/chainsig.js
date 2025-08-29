@@ -79,7 +79,6 @@
     "@aa-sdk/core": "^4.13.0",
     "@account-kit/infra": "^4.13.0",
     "@account-kit/smart-contracts": "^4.13.0",
-    "@near-wallet-selector/core": "^9.3.0",
     "@noble/curves": "^1.8.1",
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
     "@types/bn.js": "^5.1.5",
