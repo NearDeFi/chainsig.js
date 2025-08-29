@@ -13,8 +13,9 @@ export type EVMUnsignedTransaction = TransactionRequest & {
 }
 
 export interface EVMTransactionRequest
-  extends Omit<EVMUnsignedTransaction, 'chainId' | 'type'> {
+  extends Omit<EVMUnsignedTransaction, 'chainId' | 'type' | 'nonce'> {
   from: Address
+  nonce?: number
 }
 
 // Legacy transaction request coming from your dApp (includes 'from' address)
@@ -23,6 +24,8 @@ export interface EVMTransactionRequestLegacy {
   to: `0x${string}`
   value?: bigint
   gas?: bigint
+  gasPrice?: bigint
+  nonce?: number
 }
 
 // Legacy unsigned transaction to be signed
