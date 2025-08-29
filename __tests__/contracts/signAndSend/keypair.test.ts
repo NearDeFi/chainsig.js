@@ -10,7 +10,7 @@ import type { EVMTransactionRequest } from '@chain-adapters/EVM/types'
 import { ChainSignatureContract } from '@contracts/ChainSignatureContract'
 import * as keypair from '@contracts/signAndSend/transactions'
 
-import { getNearAccount } from './utils'
+import { getNearAccount } from '../../../src/contracts/signAndSend/utils'
 
 // Mock dependencies
 vi.mock('@contracts/account')
