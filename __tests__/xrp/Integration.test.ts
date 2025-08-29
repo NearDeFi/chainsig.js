@@ -172,7 +172,7 @@ describe('XRP MPC Integration', () => {
                 keyType: 'Ecdsa', // Changed from 'Secp256k1' to 'Ecdsa'
                 signerAccount: {
                   accountId: 'test-account',
-                  signAndSendTransactions: async () => ({}),
+                  signAndSendTransactions: async () => [],
                 },
               })
           )
