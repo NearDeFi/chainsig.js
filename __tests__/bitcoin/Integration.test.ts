@@ -151,7 +151,7 @@ describe('Bitcoin MPC Integration', () => {
                   keyType: 'Ecdsa',
                   signerAccount: {
                     accountId: 'test-account',
-                    signAndSendTransactions: async () => ({}),
+                    signAndSendTransactions: async () => [],
                   },
                 })
             )

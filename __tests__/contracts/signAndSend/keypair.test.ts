@@ -7,9 +7,10 @@ import * as chainAdapters from '@chain-adapters'
 import type { BTCTransactionRequest } from '@chain-adapters/Bitcoin/types'
 import type { CosmosTransactionRequest } from '@chain-adapters/Cosmos/types'
 import type { EVMTransactionRequest } from '@chain-adapters/EVM/types'
-import { getNearAccount } from '@contracts/account'
 import { ChainSignatureContract } from '@contracts/ChainSignatureContract'
 import * as keypair from '@contracts/signAndSend/keypair'
+
+import { getNearAccount } from '../../../src/contracts/signAndSend/utils'
 
 // Mock dependencies
 vi.mock('@contracts/account')

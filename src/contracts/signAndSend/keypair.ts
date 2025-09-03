@@ -3,7 +3,7 @@ import { createPublicClient, http } from 'viem'
 
 import * as chainAdapters from '@chain-adapters'
 import { BTCRpcAdapters } from '@chain-adapters/Bitcoin/BTCRpcAdapter'
-import { getNearAccount } from '@contracts/account'
+import { getNearAccount } from './utils'
 import { ChainSignatureContract } from '@contracts/ChainSignatureContract'
 import {
   type Response,
@@ -44,7 +44,7 @@ export const EVMTransaction = async (
       keyType: 'Ecdsa',
       signerAccount: {
         accountId: account.accountId,
-        signAndSendTransactions: async () => ({}),
+        signAndSendTransactions: async () => [],
       },
     })
 
@@ -102,7 +102,7 @@ export const BTCTransaction = async (
             keyType: 'Ecdsa',
             signerAccount: {
               accountId: account.accountId,
-              signAndSendTransactions: async () => ({}),
+              signAndSendTransactions: async () => [],
             },
           })
       )
@@ -160,7 +160,7 @@ export const CosmosTransaction = async (
             keyType: 'Ecdsa',
             signerAccount: {
               accountId: account.accountId,
-              signAndSendTransactions: async () => ({}),
+              signAndSendTransactions: async () => [],
             },
           })
       )
