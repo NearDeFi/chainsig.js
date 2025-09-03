@@ -1,1 +1,1 @@
-export * as keypair from './transactions'
+export * as keypair from './keypair'

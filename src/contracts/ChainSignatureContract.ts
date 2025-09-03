@@ -15,7 +15,7 @@ import {
 } from '@types'
 
 import { NEAR_MAX_GAS } from './constants'
-import { responseToMpcSignature } from './signature'
+import { responseToMpcSignature } from './transaction'
 import type { NearNetworkIds } from './types'
 
 interface Transaction {

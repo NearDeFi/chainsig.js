@@ -3,6 +3,7 @@ import { createPublicClient, http } from 'viem'
 
 import * as chainAdapters from '@chain-adapters'
 import { BTCRpcAdapters } from '@chain-adapters/Bitcoin/BTCRpcAdapter'
+import { getNearAccount } from './utils'
 import { ChainSignatureContract } from '@contracts/ChainSignatureContract'
 import {
   type Response,
@@ -10,8 +11,6 @@ import {
   type CosmosRequest,
   type EVMRequest,
 } from '@contracts/types'
-
-import { getNearAccount } from './utils'
 
 export const EVMTransaction = async (
   req: EVMRequest,
@@ -21,7 +20,7 @@ export const EVMTransaction = async (
     const account = await getNearAccount({
       networkId: req.nearAuthentication.networkId,
       accountId: req.nearAuthentication.accountId,
-      keyPair,
+      keypair: keyPair,
     })
 
     const contract = new ChainSignatureContract({
@@ -43,7 +42,10 @@ export const EVMTransaction = async (
       payloads: [hashesToSign[0]],
       path: req.derivationPath,
       keyType: 'Ecdsa',
-      signerAccount: account,
+      signerAccount: {
+        accountId: account.accountId,
+        signAndSendTransactions: async () => [],
+      },
     })
 
     const txSerialized = evm.finalizeTransactionSigning({
@@ -74,7 +76,7 @@ export const BTCTransaction = async (
     const account = await getNearAccount({
       networkId: req.nearAuthentication.networkId,
       accountId: req.nearAuthentication.accountId,
-      keyPair,
+      keypair: keyPair,
     })
 
     const contract = new ChainSignatureContract({
@@ -98,7 +100,10 @@ export const BTCTransaction = async (
             payloads: [payload],
             path: req.derivationPath,
             keyType: 'Ecdsa',
-            signerAccount: account,
+            signerAccount: {
+              accountId: account.accountId,
+              signAndSendTransactions: async () => [],
+            },
           })
       )
     )
@@ -130,7 +135,7 @@ export const CosmosTransaction = async (
     const account = await getNearAccount({
       networkId: req.nearAuthentication.networkId,
       accountId: req.nearAuthentication.accountId,
-      keyPair,
+      keypair: keyPair,
     })
 
     const contract = new ChainSignatureContract({
@@ -153,7 +158,10 @@ export const CosmosTransaction = async (
             payloads: [payload],
             path: req.derivationPath,
             keyType: 'Ecdsa',
-            signerAccount: account,
+            signerAccount: {
+              accountId: account.accountId,
+              signAndSendTransactions: async () => [],
+            },
           })
       )
     )
