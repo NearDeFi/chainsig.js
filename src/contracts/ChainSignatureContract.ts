@@ -1,4 +1,8 @@
-import { FailoverRpcProvider, JsonRpcProvider, Provider } from '@near-js/providers'
+import {
+  FailoverRpcProvider,
+  JsonRpcProvider,
+  Provider,
+} from '@near-js/providers'
 import { type Action, actionCreators } from '@near-js/transactions'
 import { type FinalExecutionOutcome } from '@near-js/types'
 import { getTransactionLastResult } from '@near-js/utils'
@@ -12,6 +16,7 @@ import {
   type UncompressedPubKeySEC1,
   type NajPublicKey,
   type MPCSignature,
+  type Ed25519PubKey,
 } from '@types'
 
 import { NEAR_MAX_GAS } from './constants'
@@ -122,7 +127,7 @@ export class ChainSignatureContract {
     path: string
     predecessor: string
     IsEd25519?: boolean
-  }): Promise<UncompressedPubKeySEC1 | `Ed25519:${string}`> {
+  }): Promise<UncompressedPubKeySEC1 | Ed25519PubKey> {
     const najPubKey = (await this.provider.callFunction(
       this.contractId,
       'derived_public_key',
@@ -133,8 +138,8 @@ export class ChainSignatureContract {
       }
     )) as NajPublicKey
 
-    if (typeof najPubKey === 'string' && najPubKey.startsWith('ed25519:')) {
-      return najPubKey
+    if (najPubKey.startsWith('ed25519')) {
+      return najPubKey as Ed25519PubKey
     }
 
     return najToUncompressedPubKeySEC1(najPubKey)
