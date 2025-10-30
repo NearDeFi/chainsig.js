@@ -10,6 +10,7 @@ import {
   type BitcoinRequest,
   type CosmosRequest,
   type EVMRequest,
+  type MultiversXRequest,
 } from '@contracts/types'
 
 export const EVMTransaction = async (
@@ -20,7 +21,7 @@ export const EVMTransaction = async (
     const account = await getNearAccount({
       networkId: req.nearAuthentication.networkId,
       accountId: req.nearAuthentication.accountId,
-      keypair: keyPair,
+      keyPair: keyPair,
     })
 
     const contract = new ChainSignatureContract({
@@ -76,7 +77,7 @@ export const BTCTransaction = async (
     const account = await getNearAccount({
       networkId: req.nearAuthentication.networkId,
       accountId: req.nearAuthentication.accountId,
-      keypair: keyPair,
+      keyPair: keyPair,
     })
 
     const contract = new ChainSignatureContract({
@@ -135,7 +136,7 @@ export const CosmosTransaction = async (
     const account = await getNearAccount({
       networkId: req.nearAuthentication.networkId,
       accountId: req.nearAuthentication.accountId,
-      keypair: keyPair,
+      keyPair: keyPair,
     })
 
     const contract = new ChainSignatureContract({
@@ -175,6 +176,60 @@ export const CosmosTransaction = async (
 
     return {
       transactionHash: txHash,
+      success: true,
+    }
+  } catch (e: unknown) {
+    console.error(e)
+    return {
+      success: false,
+      errorMessage: e instanceof Error ? e.message : String(e),
+    }
+  }
+}
+
+export const MultiversXTransaction = async (
+  req: MultiversXRequest,
+  keyPair: KeyPair
+): Promise<Response> => {
+  try {
+    const account = await getNearAccount({
+      networkId: req.nearAuthentication.networkId,
+      accountId: req.nearAuthentication.accountId,
+      keyPair: keyPair,
+    })
+
+    const contract = new ChainSignatureContract({
+      networkId: req.nearAuthentication.networkId,
+      contractId: req.chainConfig.contract,
+    })
+
+    const multiversx = new chainAdapters.multiversx.MultiversX({
+      networkEntrypoint: req.chainConfig.networkEntrypoint,
+      contract,
+    })
+
+    const { transaction, hashesToSign } =
+      await multiversx.prepareTransactionForSigning(req.transaction)
+
+    const signatures = await contract.sign({
+      payloads: hashesToSign,
+      path: req.derivationPath,
+      keyType: 'Eddsa',
+      signerAccount: {
+        accountId: account.accountId,
+        signAndSendTransactions: async () => [],
+      },
+    })
+
+    const txSerialized = multiversx.finalizeTransactionSigning({
+      transaction,
+      rsvSignatures: signatures,
+    })
+
+    const { hash } = await multiversx.broadcastTx(txSerialized)
+
+    return {
+      transactionHash: hash,
       success: true,
     }
   } catch (e: unknown) {

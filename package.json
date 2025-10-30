@@ -118,6 +118,7 @@
     "@cosmjs/math": "^0.32.4",
     "@cosmjs/proto-signing": "^0.32.4",
     "@cosmjs/stargate": "^0.32.4",
+    "@multiversx/sdk-core": "^15.3.0",
     "@mysten/sui": "^1.30.1",
     "@near-js/accounts": "^2.2.4",
     "@near-js/crypto": "^2.2.4",

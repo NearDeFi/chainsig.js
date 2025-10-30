@@ -7,6 +7,10 @@ import type {
   CosmosTransactionRequest,
 } from '@chain-adapters/Cosmos/types'
 import { type EVMTransactionRequest } from '@chain-adapters/EVM/types'
+import type {
+  MultiversXTransactionRequest,
+} from '@chain-adapters/MultiversX/types'
+import { NetworkEntrypoint } from '@multiversx/sdk-core/out'
 
 export type ChainSignatureContractIds = string
 
@@ -67,6 +71,19 @@ export interface CosmosChainConfig {
 export interface CosmosRequest {
   chainConfig: CosmosChainConfig
   transaction: CosmosTransactionRequest
+  nearAuthentication: NearAuthentication
+  derivationPath: string
+  fastAuthRelayerUrl?: string
+}
+
+export interface MultiversXChainConfig {
+  contract: ChainSignatureContractIds
+  networkEntrypoint: NetworkEntrypoint
+}
+
+export interface MultiversXRequest {
+  chainConfig: MultiversXChainConfig
+  transaction: MultiversXTransactionRequest
   nearAuthentication: NearAuthentication
   derivationPath: string
   fastAuthRelayerUrl?: string

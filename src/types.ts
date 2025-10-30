@@ -2,7 +2,7 @@ export { type HashToSign } from '@contracts/ChainSignatureContract'
 
 export type Base58String = string
 
-export type NajPublicKey = `secp256k1:${Base58String}`
+export type NajPublicKey = `secp256k1:${Base58String}` | `ed25519:${Base58String}`
 
 export type UncompressedPubKeySEC1 = `04${string}`
 

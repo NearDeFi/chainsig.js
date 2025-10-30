@@ -123,7 +123,7 @@ export class ChainSignatureContract {
     predecessor: string
     IsEd25519?: boolean
   }): Promise<UncompressedPubKeySEC1 | `Ed25519:${string}`> {
-    const najPubKey = await this.provider.callFunction(
+    const najPubKey = (await this.provider.callFunction(
       this.contractId,
       'derived_public_key',
       {
@@ -131,7 +131,12 @@ export class ChainSignatureContract {
         predecessor: args.predecessor,
         domain_id: args.IsEd25519 ? 1 : 0,
       }
-    )
-    return najToUncompressedPubKeySEC1(najPubKey as NajPublicKey)
+    )) as NajPublicKey
+
+    if (typeof najPubKey === 'string' && najPubKey.startsWith('ed25519:')) {
+      return najPubKey
+    }
+
+    return najToUncompressedPubKeySEC1(najPubKey)
   }
 }
