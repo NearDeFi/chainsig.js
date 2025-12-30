@@ -286,11 +286,11 @@ export class EVM extends ChainAdapter<EVMTransactionRequest, EVMUnsignedTransact
                   userOp.paymaster &&
                   isAddress(userOp.paymaster)
                   ? concat([
-                      userOp.paymaster,
-                      pad(userOp.paymasterVerificationGasLimit, { size: 16 }),
-                      pad(userOp.paymasterPostOpGasLimit, { size: 16 }),
-                      userOp.paymasterData,
-                    ])
+                    userOp.paymaster,
+                    pad(userOp.paymasterVerificationGasLimit, { size: 16 }),
+                    pad(userOp.paymasterPostOpGasLimit, { size: 16 }),
+                    userOp.paymasterData,
+                  ])
                   : 'paymasterAndData' in userOp
                     ? userOp.paymasterAndData
                     : '0x'
@@ -371,6 +371,75 @@ export class EVM extends ChainAdapter<EVMTransactionRequest, EVMUnsignedTransact
     rsvSignature: RSVSignature
   }): Hex {
     return this.assembleSignature(rsvSignature)
+  }
+
+  /**
+   * Sign EIP-712 typed data using Chain Signatures
+   * Combines prepare, sign, and finalize steps into a single method.
+   *
+   * @param typedDataRequest - EIP-712 typed data definition (domain, types, primaryType, message)
+   * @param signerAccount - Account object with accountId and signAndSendTransactions method
+   * @param path - Derivation path for the key (e.g., "base-1", "ethereum-1")
+   * @param keyType - Key type for signing (defaults to 'Ecdsa')
+   * @returns RSV signature object with v, r, s values
+   */
+  async signTypedDataWithChainSignature({
+    typedDataRequest,
+    signerAccount,
+    path,
+    keyType = 'Ecdsa',
+  }: {
+    typedDataRequest: EVMTypedData
+    signerAccount: Parameters<ChainSignatureContract['sign']>[0]['signerAccount']
+    path: string
+    keyType?: 'Ecdsa' | 'Eddsa'
+  }): Promise<RSVSignature> {
+    // Prepare the typed data hash for signing
+    const { hashToSign } = await this.prepareTypedDataForSigning(typedDataRequest)
+
+    // Sign with MPC contract using chain signature contract
+    const signatures = await this.contract.sign({
+      payloads: [hashToSign],
+      path,
+      keyType,
+      signerAccount,
+    })
+
+    if (!signatures || signatures.length === 0) {
+      throw new Error('Failed to get signature from MPC contract')
+    }
+
+    const sig = signatures[0]
+
+    // Format signature - ensure r and s have proper format
+    const r = sig.r.startsWith('0x') ? sig.r.slice(2) : sig.r
+    const s = sig.s.startsWith('0x') ? sig.s.slice(2) : sig.s
+
+    // Handle v value for EIP-712
+    // Extract recovery_id from various v formats
+    let recoveryId: number
+    if (sig.v === 0 || sig.v === 1) {
+      // Direct recovery ID
+      recoveryId = sig.v
+    } else if (sig.v === 27 || sig.v === 28) {
+      // Legacy v - extract recovery_id
+      recoveryId = sig.v - 27
+    } else if (sig.v >= 35) {
+      // EIP-155 adjusted v - extract recovery_id: v = recovery_id + chainId * 2 + 35
+      recoveryId = (sig.v - 35) % 2
+    } else {
+      console.warn(`Unexpected v value: ${sig.v}, using recovery_id 0`)
+      recoveryId = 0
+    }
+
+    // For EIP-712, v = recovery_id + 27 (standard format)
+    const v = recoveryId + 27
+
+    return {
+      v,
+      r,
+      s,
+    }
   }
 
   finalizeUserOpSigning({

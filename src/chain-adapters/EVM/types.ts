@@ -76,3 +76,69 @@ export interface UserOperationV6 {
   paymasterAndData: Hex
   signature: Hex
 }
+
+/**
+ * RSV signature format returned from chain signature signing
+ */
+export interface RSVSignature {
+  r: string
+  s: string
+  v: number
+}
+
+/**
+ * Parameters for preparing an EIP-1559 transaction for signing
+ */
+export interface PrepareTransactionParams {
+  from: string
+  to: string
+  value: bigint
+  data?: string
+  gasLimit?: bigint
+  gasPrice?: bigint
+}
+
+/**
+ * Parameters for preparing a legacy transaction for signing
+ */
+export interface PrepareTransactionLegacyParams {
+  from: string
+  to: string
+  value: bigint
+  data?: string
+  gasPrice?: bigint
+  gas?: bigint
+}
+
+/**
+ * Result of preparing a transaction for signing
+ */
+export interface PreparedTransaction {
+  transaction: EVMUnsignedTransaction | EVMUnsignedLegacyTransaction
+  hashesToSign: string[]
+}
+
+/**
+ * Parameters for finalizing a signed transaction
+ */
+export interface FinalizeTransactionParams {
+  transaction: EVMUnsignedTransaction | EVMUnsignedLegacyTransaction
+  rsvSignatures: RSVSignature[]
+  chainId?: number
+}
+
+/**
+ * Parameters for finalizing a legacy signed transaction
+ */
+export interface FinalizeTransactionLegacyParams {
+  transaction: EVMUnsignedLegacyTransaction
+  rsvSignatures: RSVSignature[]
+}
+
+/**
+ * Result of deriving address and public key
+ */
+export interface DerivedAddressResult {
+  address: string
+  publicKey?: string
+}
