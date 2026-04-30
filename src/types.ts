@@ -8,7 +8,7 @@ export type UncompressedPubKeySEC1 = `04${string}`
 
 export type CompressedPubKeySEC1 = `02${string}` | `03${string}`
 
-export type Ed25519PubKey = `Ed25519:${string}`
+export type Ed25519PubKey = `ed25519:${string}`
 
 export interface DerivedPublicKeyArgs {
   path: string

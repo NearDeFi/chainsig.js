@@ -373,7 +373,7 @@ async function getNearChainSignatureContract(): Promise<ChainSignatureContract> 
 
     async getDerivedPublicKey(
       args: DerivedPublicKeyArgs
-    ): Promise<`04${string}` | `Ed25519:${string}`> {
+    ): Promise<`04${string}` | `ed25519:${string}`> {
       try {
         console.log(
           'Attempting to derive real secp256k1 public key from NEAR MPC contract...'
