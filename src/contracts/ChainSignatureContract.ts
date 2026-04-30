@@ -57,9 +57,13 @@ export class ChainSignatureContract {
     fallbackRpcUrls?: string[]
   }) {
     this.networkId = networkId
+    const trimmedContractId = contractId?.trim()
     this.contractId =
-      contractId ??
-      CONTRACT_ADDRESSES[networkId === 'mainnet' ? ENVS.MAINNET : ENVS.TESTNET]
+      trimmedContractId && trimmedContractId.length > 0
+        ? trimmedContractId
+        : CONTRACT_ADDRESSES[
+            networkId === 'mainnet' ? ENVS.MAINNET : ENVS.TESTNET
+          ]
 
     const rpcProviderUrls =
       fallbackRpcUrls && fallbackRpcUrls.length > 0

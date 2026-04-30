@@ -6,7 +6,7 @@ const config: Config = {
     '^.+\\.(m?[tj]s|tsx)$': [
       'ts-jest',
       {
-        tsconfig: { allowJs: true },
+        tsconfig: { allowJs: true, module: 'CommonJS' },
       },
     ],
   },
