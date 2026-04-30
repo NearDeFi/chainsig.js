@@ -1,51 +1,37 @@
-import { JsonRpcProvider } from '@near-js/providers'
+import { describe, expect, it } from '@jest/globals'
 
-import { CONTRACT_ADDRESSES, ENVS } from '../../src/constants'
 import { ChainSignatureContract } from '../../src/contracts/ChainSignatureContract'
-import {
-  najToUncompressedPubKeySEC1,
-} from '../../src/utils/cryptography'
-import type { Ed25519PubKey, NajPublicKey } from '../../src/types'
+import { najToUncompressedPubKeySEC1 } from '../../src/utils/cryptography'
 
+// These vectors were captured from the live near/mpc testnet contract
+// (v1.signer-prod.testnet) on 2026-04-30. They pin the local KDF output to
+// what the contract returns, so any change to the derivation logic that drifts
+// from near/mpc will fail this test offline.
 const PREDECESSOR = 'derivation-test.testnet'
 const PATH = 'unit-test'
 
-const provider = new JsonRpcProvider({ url: 'https://rpc.testnet.near.org' })
-const TESTNET_CONTRACT = CONTRACT_ADDRESSES[ENVS.TESTNET]
+const EXPECTED_SECP256K1_NAJ =
+  'secp256k1:3b3GS4kaAPvzxFUEYKiMvXeuBzttMZosggT3iAAbyZzAfQc1Dn4eLrDshNGGeKZyfSK7xegjPSq553NXHisMLiyA'
+const EXPECTED_ED25519 =
+  'ed25519:49KFz8zeqrPcaSKqLCXtY79zW98ZW6Nd7W8vSsC7FdKJ'
 
-async function contractDerivedPublicKey(
-  domainId: 0 | 1
-): Promise<string> {
-  return (await provider.callFunction(
-    TESTNET_CONTRACT,
-    'derived_public_key',
-    { path: PATH, predecessor: PREDECESSOR, domain_id: domainId }
-  )) as string
-}
-
-describe('Local derivation matches NEAR MPC contract', () => {
-  jest.setTimeout(30_000)
-
-  it('secp256k1 child key matches the contract', async () => {
+describe('Local derivation matches near/mpc contract output', () => {
+  it('secp256k1 child key matches captured contract vector', async () => {
     const contract = new ChainSignatureContract({ networkId: 'testnet' })
     const local = await contract.getDerivedPublicKey({
       path: PATH,
       predecessor: PREDECESSOR,
     })
-    const fromContract = najToUncompressedPubKeySEC1(
-      (await contractDerivedPublicKey(0)) as NajPublicKey
-    )
-    expect(local).toBe(fromContract)
+    expect(local).toBe(najToUncompressedPubKeySEC1(EXPECTED_SECP256K1_NAJ))
   })
 
-  it('ed25519 child key matches the contract', async () => {
+  it('ed25519 child key matches captured contract vector', async () => {
     const contract = new ChainSignatureContract({ networkId: 'testnet' })
     const local = await contract.getDerivedPublicKey({
       path: PATH,
       predecessor: PREDECESSOR,
       IsEd25519: true,
     })
-    const fromContract = (await contractDerivedPublicKey(1)) as Ed25519PubKey
-    expect(local).toBe(fromContract)
+    expect(local).toBe(EXPECTED_ED25519)
   })
 })

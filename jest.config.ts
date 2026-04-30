@@ -15,7 +15,6 @@ const config: Config = {
     '^@chain-adapters/(.*)$': '<rootDir>/src/chain-adapters/$1',
     '^@contracts/(.*)$': '<rootDir>/src/contracts/$1',
     '^@utils/(.*)$': '<rootDir>/src/utils/$1',
-    '^@utils/cryptography$': '<rootDir>/__mocks__/utils-cryptography.ts',
     '^@constants$': '<rootDir>/src/constants.ts',
     '^@types$': '<rootDir>/src/types.ts',
     '^@chain-adapters$': '<rootDir>/src/chain-adapters/index.ts',
