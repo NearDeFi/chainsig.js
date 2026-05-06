@@ -3,14 +3,18 @@ import { type Action, actionCreators } from '@near-js/transactions'
 import { type FinalExecutionOutcome } from '@near-js/types'
 import { getTransactionLastResult } from '@near-js/utils'
 import {
+  deriveChildPublicKey,
+  deriveChildPublicKeyEd25519,
   najToUncompressedPubKeySEC1,
   uint8ArrayToHex,
 } from '@utils/cryptography'
 
+import { CONTRACT_ADDRESSES, ENVS, ROOT_PUBLIC_KEYS } from '@constants'
 import {
   type RSVSignature,
   type UncompressedPubKeySEC1,
   type NajPublicKey,
+  type Ed25519PubKey,
   type MPCSignature,
 } from '@types'
 
@@ -48,12 +52,18 @@ export class ChainSignatureContract {
     networkId,
     fallbackRpcUrls,
   }: {
-    contractId: string
+    contractId?: string
     networkId: NearNetworkIds
     fallbackRpcUrls?: string[]
   }) {
-    this.contractId = contractId
     this.networkId = networkId
+    const trimmedContractId = contractId?.trim()
+    this.contractId =
+      trimmedContractId && trimmedContractId.length > 0
+        ? trimmedContractId
+        : CONTRACT_ADDRESSES[
+            networkId === 'mainnet' ? ENVS.MAINNET : ENVS.TESTNET
+          ]
 
     const rpcProviderUrls =
       fallbackRpcUrls && fallbackRpcUrls.length > 0
@@ -122,7 +132,29 @@ export class ChainSignatureContract {
     path: string
     predecessor: string
     IsEd25519?: boolean
-  }): Promise<UncompressedPubKeySEC1 | `Ed25519:${string}`> {
+  }): Promise<UncompressedPubKeySEC1 | Ed25519PubKey> {
+    // Fast path: when contractId matches a known NEAR MPC deployment we already
+    // know the root keys, so derive client-side and skip the RPC round-trip.
+    // Falls through to the contract view for custom deployments.
+    const env = (Object.keys(CONTRACT_ADDRESSES) as Array<keyof typeof ENVS>).find(
+      (e) => CONTRACT_ADDRESSES[e] === this.contractId
+    )
+    if (env) {
+      const roots = ROOT_PUBLIC_KEYS[env]
+      if (args.IsEd25519) {
+        return deriveChildPublicKeyEd25519(
+          roots.ed25519,
+          args.predecessor,
+          args.path
+        )
+      }
+      return deriveChildPublicKey(
+        najToUncompressedPubKeySEC1(roots.secp256k1),
+        args.predecessor,
+        args.path
+      )
+    }
+
     const najPubKey = await this.provider.callFunction(
       this.contractId,
       'derived_public_key',
@@ -132,6 +164,9 @@ export class ChainSignatureContract {
         domain_id: args.IsEd25519 ? 1 : 0,
       }
     )
+    if (args.IsEd25519) {
+      return najPubKey as Ed25519PubKey
+    }
     return najToUncompressedPubKeySEC1(najPubKey as NajPublicKey)
   }
 }
