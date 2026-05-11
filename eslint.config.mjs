@@ -22,6 +22,18 @@ export default [
     rules: {
       '@typescript-eslint/strict-boolean-expressions': 'off',
       '@typescript-eslint/prefer-nullish-coalescing': 'off',
+      'import/no-extraneous-dependencies': [
+        'error',
+        {
+          devDependencies: [
+            '__tests__/**',
+            '__mocks__/**',
+            '**/*.test.ts',
+          ],
+          peerDependencies: false,
+          optionalDependencies: false,
+        },
+      ],
       'import/order': [
         'error',
         {
