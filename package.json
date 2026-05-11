@@ -1,6 +1,6 @@
 {
   "name": "chainsig.js",
-  "version": "1.1.6",
+  "version": "1.1.16",
   "description": "ChainSig Library",
   "license": "MIT",
   "type": "module",
